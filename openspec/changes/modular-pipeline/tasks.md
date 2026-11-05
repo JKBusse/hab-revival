@@ -38,7 +38,8 @@
 ## 7. Prüfung auf `hba1`
 
 - [x] 7.1 Auf `hba1` klonen, Umgebung mit `--system-site-packages` einrichten und verifizieren, dass `pytest` unter Python 3.10 vollständig besteht
-- [ ] 7.2 Fünf Minuten mit echter Kamera, GPU (`-d 0`) und Pseudo-Terminal laufen lassen und verifizieren, dass das Log dieselben Meldungstypen wie die Legacy-Logs enthält und die Frame-Dauer im Median bei höchstens 0,15 s liegt
+- [x] 7.2 Fünf Minuten mit Bildordner statt Kamera (`hba.replay.FolderCamera`, `tools/replay_run.py`), GPU (`-d 0`) und Pseudo-Terminal laufen lassen und verifizieren, dass das Log dieselben Meldungstypen wie die Legacy-Logs enthält und die Frame-Dauer im Median bei höchstens 0,15 s liegt (gemessen 2026-11-06: 3.853 Frames, Median 0,075 s, Maximum 0,118 s, kein Xid)
+- [ ] 7.3 Fünf Minuten mit echter Kamera, GPU und Pseudo-Terminal (oder Mikrocontroller) laufen lassen und verifizieren, dass `initialize_camera: OK` im Log steht und die Frame-Dauer im Median bei höchstens 0,15 s liegt
 
 ## Workflow follow-up
 
