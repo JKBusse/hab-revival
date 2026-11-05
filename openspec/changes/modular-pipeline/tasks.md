@@ -5,7 +5,7 @@
 - [x] 1.1 `git init`, `.gitignore` (Modelle `*.pt`, Datensätze, Logs, virtuelle Umgebungen, `__pycache__`) und ersten Commit anlegen und verifizieren, dass `git status` sauber ist und keine Modell- oder Datensatzdatei erfasst wird
 - [x] 1.2 `pyproject.toml` (Python ab 3.10, Extras `dev` und `gpu`), `src/hba/__init__.py` und `tests/` anlegen und verifizieren, dass `pip install -e ".[dev]"` und `pytest` ohne Fehler durchlaufen
 - [x] 1.3 `README.md` mit Einrichtung, Testlauf und Deploy auf `hba1` schreiben und verifizieren, dass die dokumentierten Befehle auf dem Mac wie beschrieben laufen
-- [ ] 1.4 (Jan) Privates GitHub-Repo anlegen, `origin` setzen, Deploy-Key auf `hba1` einrichten und verifizieren, dass `git pull` auf `hba1` funktioniert
+- [x] 1.4 (Jan) Privates GitHub-Repo anlegen, `origin` setzen, Deploy-Key auf `hba1` einrichten und verifizieren, dass `git pull` auf `hba1` funktioniert
 
 ## 2. Ports und Fakes
 
@@ -37,7 +37,7 @@
 
 ## 7. Prüfung auf `hba1`
 
-- [ ] 7.1 Auf `hba1` klonen, Umgebung mit `--system-site-packages` einrichten und verifizieren, dass `pytest` unter Python 3.10 vollständig besteht
+- [x] 7.1 Auf `hba1` klonen, Umgebung mit `--system-site-packages` einrichten und verifizieren, dass `pytest` unter Python 3.10 vollständig besteht
 - [ ] 7.2 Fünf Minuten mit echter Kamera, GPU (`-d 0`) und Pseudo-Terminal laufen lassen und verifizieren, dass das Log dieselben Meldungstypen wie die Legacy-Logs enthält und die Frame-Dauer im Median bei höchstens 0,15 s liegt
 
 ## Workflow follow-up

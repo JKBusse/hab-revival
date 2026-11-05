@@ -26,12 +26,16 @@ nötig: Der Detektor importiert sie erst beim Start.
 ## Betrieb auf `hba1`
 
 `hba1` (Ubuntu 22.04, Python 3.10) hat `torch` und `ultralytics` bereits unter `~/.local`.
-Die virtuelle Umgebung nutzt sie mit:
+Die virtuelle Umgebung nutzt sie mit `--system-site-packages`.
+
+Einmalig (Deploy-Key `~/.ssh/id_ed25519_hba_deploy`, Alias `github-hba` in `~/.ssh/config`):
 
 ```bash
-git clone <repo-url> ~/hba-revival
+sudo apt-get update && sudo apt-get install -y python3.10-venv   # fehlt auf frischem Ubuntu
+git clone git@github-hba:JKBusse/hab-revival.git ~/hba-revival
 cd ~/hba-revival
 python3 -m venv .venv --system-site-packages
+.venv/bin/pip install -U pip setuptools wheel   # pip 22 kann sonst nicht editierbar installieren
 .venv/bin/pip install -e ".[dev]"
 .venv/bin/pytest
 ```
