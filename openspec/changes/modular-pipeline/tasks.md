@@ -9,8 +9,8 @@
 
 ## 2. Ports und Fakes
 
-- [ ] 2.1 Schnittstellen `Camera`, `Detector`, `Actuator`, `Clock` und den Datentyp `Box` in `src/hba/ports.py` definieren und verifizieren, dass das Modul ohne OpenCV, Torch und Serial importierbar ist
-- [ ] 2.2 `tests/fakes.py` mit Fake-Kamera (Bildfolge), Fake-Detektor (programmierte Boxen), Fake-Aktor (zeichnet Status auf) und Fake-Uhr schreiben und verifizieren, dass ein Test eine programmierte Sequenz unverändert abspielt
+- [x] 2.1 Schnittstellen `Camera`, `Detector`, `Actuator`, `Clock` und den Datentyp `Box` in `src/hba/ports.py` definieren und verifizieren, dass das Modul ohne OpenCV, Torch und Serial importierbar ist
+- [x] 2.2 `tests/fakes.py` mit Fake-Kamera (Bildfolge), Fake-Detektor (programmierte Boxen), Fake-Aktor (zeichnet Status auf) und Fake-Uhr schreiben und verifizieren, dass ein Test eine programmierte Sequenz unverändert abspielt
 
 ## 3. Reine Logik
 
