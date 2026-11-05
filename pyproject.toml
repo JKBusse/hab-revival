@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hba"
+version = "0.1.0"
+description = "High Beam Assist: Fernlichtassistent mit YOLOv8"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "opencv-python>=4.8,<5",
+    "pyserial",
+]
+
+[project.optional-dependencies]
+# Entwicklung und Tests (Mac und hba1)
+dev = ["pytest"]
+# Nur zur Dokumentation: Versionen, die auf hba1 installiert sind.
+# Der Detektor importiert ultralytics erst beim Start (siehe design.md).
+gpu = ["torch==2.0.1", "ultralytics==8.0.180"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

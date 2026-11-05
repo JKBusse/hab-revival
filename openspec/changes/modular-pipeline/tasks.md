@@ -2,9 +2,9 @@
 
 ## 1. Repository und Gerüst
 
-- [ ] 1.1 `git init`, `.gitignore` (Modelle `*.pt`, Datensätze, Logs, virtuelle Umgebungen, `__pycache__`) und ersten Commit anlegen und verifizieren, dass `git status` sauber ist und keine Modell- oder Datensatzdatei erfasst wird
-- [ ] 1.2 `pyproject.toml` (Python ab 3.10, Extras `dev` und `gpu`), `src/hba/__init__.py` und `tests/` anlegen und verifizieren, dass `pip install -e ".[dev]"` und `pytest` ohne Fehler durchlaufen
-- [ ] 1.3 `README.md` mit Einrichtung, Testlauf und Deploy auf `hba1` schreiben und verifizieren, dass die dokumentierten Befehle auf dem Mac wie beschrieben laufen
+- [x] 1.1 `git init`, `.gitignore` (Modelle `*.pt`, Datensätze, Logs, virtuelle Umgebungen, `__pycache__`) und ersten Commit anlegen und verifizieren, dass `git status` sauber ist und keine Modell- oder Datensatzdatei erfasst wird
+- [x] 1.2 `pyproject.toml` (Python ab 3.10, Extras `dev` und `gpu`), `src/hba/__init__.py` und `tests/` anlegen und verifizieren, dass `pip install -e ".[dev]"` und `pytest` ohne Fehler durchlaufen
+- [x] 1.3 `README.md` mit Einrichtung, Testlauf und Deploy auf `hba1` schreiben und verifizieren, dass die dokumentierten Befehle auf dem Mac wie beschrieben laufen
 - [ ] 1.4 (Jan) Privates GitHub-Repo anlegen, `origin` setzen, Deploy-Key auf `hba1` einrichten und verifizieren, dass `git pull` auf `hba1` funktioniert
 
 ## 2. Ports und Fakes
