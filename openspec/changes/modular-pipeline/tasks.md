@@ -27,13 +27,13 @@
 
 - [ ] 5.1 Kamera-Adapter in `capture.py` umsetzen (OpenCV, MJPG, 1920×1080, `v4l2-ctl`-Einstellungen wie im Original) und auf `hba1` verifizieren, dass `initialize_camera: OK` geloggt wird und ein 1920×1080-Frame ankommt
 - [ ] 5.2 Detektor-Adapter in `detect.py` mit verzögertem Import umsetzen und verifizieren, dass ein Test auf dem Mac nachweist, dass der Import des Moduls weder `torch` noch `ultralytics` lädt, und dass `hba1` mit `medium6` für ein Testbild Boxen liefert
-- [ ] 5.3 Einfachen Serial-Aktor wie im Original (je Frame `1\n` oder `0\n`, Port und Baudrate wie in der Spec) in `actuator.py` umsetzen und per Pseudo-Terminal-Test verifizieren, dass die richtigen Bytes ankommen
+- [x] 5.3 Einfachen Serial-Aktor wie im Original (je Frame `1\n` oder `0\n`, Port und Baudrate wie in der Spec) in `actuator.py` umsetzen und per Pseudo-Terminal-Test verifizieren, dass die richtigen Bytes ankommen
 
 ## 6. Hauptschleife und Aufruf
 
-- [ ] 6.1 Hauptschleife in `app.py` aus den Ports zusammensetzen und per Ende-zu-Ende-Test mit Fake-Kamera, Fake-Detektor und Pseudo-Terminal verifizieren, dass eine programmierte Frame-Folge die erwartete Statusfolge liefert
-- [ ] 6.2 Alle Flags mit den Standardwerten der Baseline in `cli.py` und den Einstieg `python -m hba` umsetzen und verifizieren, dass `python -m hba --help` alle zehn Flags zeigt und ein Test die Standardwerte prüft
-- [ ] 6.3 Minimalen Lebenszyklus wie im Original (SIGINT, `---END---`, Exit-Code 0 bei unbehandelten Fehlern, Taste `c`) in `lifecycle.py` umsetzen und per Subprozess-Test verifizieren, dass Signal und Exception das Programm wie in der Spec `runtime-configuration` beschrieben beenden
+- [x] 6.1 Hauptschleife in `app.py` aus den Ports zusammensetzen und per Ende-zu-Ende-Test mit Fake-Kamera, Fake-Detektor und Pseudo-Terminal verifizieren, dass eine programmierte Frame-Folge die erwartete Statusfolge liefert
+- [x] 6.2 Alle Flags mit den Standardwerten der Baseline in `cli.py` und den Einstieg `python -m hba` umsetzen und verifizieren, dass `python -m hba --help` alle zehn Flags zeigt und ein Test die Standardwerte prüft
+- [x] 6.3 Minimalen Lebenszyklus wie im Original (SIGINT, `---END---`, Exit-Code 0 bei unbehandelten Fehlern, Taste `c`) in `lifecycle.py` umsetzen und per Subprozess-Test verifizieren, dass Signal und Exception das Programm wie in der Spec `runtime-configuration` beschrieben beenden
 
 ## 7. Prüfung auf `hba1`
 
