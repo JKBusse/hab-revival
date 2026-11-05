@@ -26,7 +26,7 @@
 ## 5. Adapter
 
 - [ ] 5.1 Kamera-Adapter in `capture.py` umsetzen (OpenCV, MJPG, 1920×1080, `v4l2-ctl`-Einstellungen wie im Original) und auf `hba1` verifizieren, dass `initialize_camera: OK` geloggt wird und ein 1920×1080-Frame ankommt
-- [ ] 5.2 Detektor-Adapter in `detect.py` mit verzögertem Import umsetzen und verifizieren, dass ein Test auf dem Mac nachweist, dass der Import des Moduls weder `torch` noch `ultralytics` lädt, und dass `hba1` mit `medium6` für ein Testbild Boxen liefert
+- [x] 5.2 Detektor-Adapter in `detect.py` mit verzögertem Import umsetzen und verifizieren, dass ein Test auf dem Mac nachweist, dass der Import des Moduls weder `torch` noch `ultralytics` lädt, und dass `hba1` mit `medium6` für ein Testbild Boxen liefert
 - [x] 5.3 Einfachen Serial-Aktor wie im Original (je Frame `1\n` oder `0\n`, Port und Baudrate wie in der Spec) in `actuator.py` umsetzen und per Pseudo-Terminal-Test verifizieren, dass die richtigen Bytes ankommen
 
 ## 6. Hauptschleife und Aufruf
