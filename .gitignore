@@ -1,0 +1,28 @@
+# Modelle und Datensaetze (liegen auf hba1 bzw. in eigenen Ordnern)
+*.pt
+*.engine
+*.onnx
+HBA4v2Dataset/
+HBA1-Datasets/
+prelabel/
+
+# Logs, Aufnahmen, Laufzeitdaten
+*.log
+logs/
+images/
+labels/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Lokale Werkzeug-Einstellungen
+.claude/settings.local.json
+.DS_Store
+hba.yaml

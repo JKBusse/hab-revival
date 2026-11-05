@@ -1,0 +1,11 @@
+path:  /home/jkb/YOLO/HBA1 
+train: /home/jkb/YOLO/HBA1/train 
+test: /home/jkb/YOLO/HBA1/test 
+val: /home/jkb/YOLO/HBA1/valid 
+
+#Classes
+nc: 2
+
+#classes names
+#replace all class names list with your classes names
+names: ['back', 'front']

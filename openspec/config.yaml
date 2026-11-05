@@ -1,0 +1,50 @@
+schema: spec-driven
+
+context: |
+  Language: german
+  All artifacts must be written in german.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Projekt: HBA = High Beam Assist (DIY-Fernlichtassistent), Revival eines
+  Legacy-Systems von ~2024. Kamera -> YOLOv8 (Klassen front/back) ->
+  Relevanzfilter -> Fernlicht-Entscheidung -> Serial (0/1) -> Mikrocontroller
+  -> Relais. Zielhost "hba1": Ubuntu 22.04, Python 3.10, PyTorch 2.0.1+cu117,
+  ultralytics 8.0.180, NVIDIA P106-100 (6 GB), 3,7 GB RAM, i3-5010U.
+  Legacy-Code liegt unter legacy/ (nur Referenz, wird nicht verändert).
+  Hintergrund und offene Punkte: REQUIREMENTS.md.
+
+  Sicherheitsprinzipien (gelten für ALLE Specs und Changes):
+  - Fail-Safe: Fernlicht AUS ist der sichere Zustand. Bei jedem Fehler,
+    Ausfall oder jeder Unsicherheit MUST abgeblendet werden.
+  - Asymmetrische Entprellung: Abblenden sofort bei erster Detektion,
+    Aufblenden nur nach durchgehend freier Sicht (Legacy: >= 3 s), um
+    False Negatives abzufangen.
+  - Gegenverkehr nie blenden: False Negatives sind der gefährliche Fehlerfall.
+  - Override und Not-Aus sind per Hardware gelöst: Das Relais ist eine Freigabe in
+    Reihe mit dem Lichthebel, der Assistent kann Fernlicht nur erlauben, nie
+    erzwingen. Specs MUST das nicht in Software nachbauen, aber jeden Ausfall als
+    Abblenden behandeln.
+  - Hardware-Realität: Die GPU kann unter Last vom PCIe-Bus fallen. Das
+    System MUST dann in den sicheren Zustand (abgeblendet) gehen.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

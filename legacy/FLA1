@@ -1,0 +1,12 @@
+				        DIY Fernlichtassistent
+				        
+Mit KI und Machine Learning. Yolov8/PyTorch
+Legende:
+Weisse Box um Objekt: Auto von Vorne
+Rote Box um Objekt:   Auto von Hinten
+Gelbe Box um Objekt:  Ungültiges Objekt (Zu hoch, zu Groß etc.)
+
+Die erste Zahl neben den Boxen gibt die Klasse an, die zweite die Confidence
+
+CPU: Intel i3-5010U (4) @ 2.000GHz 
+GPU: NVIDIA P106-100 (GTX-1060)
