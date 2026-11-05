@@ -52,7 +52,8 @@ def main() -> None:
     p.add_argument("--out", default=os.path.expanduser("~/hba-replay"))
     args = p.parse_args()
 
-    os.makedirs(os.path.join(args.out, "log"), exist_ok=True)
+    for sub in ("log", "images/crop", "images/random", "images/detections", "labels/detections"):
+        os.makedirs(os.path.join(args.out, sub), exist_ok=True)  # Recorder legt keine Ordner an (Legacy)
     start_name = timestamp_name(time.time())
     logger = monitor.setup_logger(os.path.join(args.out, "log"), start_name)
     monitor.log_start(logger, start_name, str(args))
@@ -69,7 +70,7 @@ def main() -> None:
     logger.info("---initialisierung abgeschlossen--- \n")
     pipeline = Pipeline(
         camera, detector, actuator, clock,
-        Recorder(args.out, save_all=False, rng=random.Random(0)),  # Ordner fehlen -> kein Schreiben nötig, siehe unten
+        Recorder(args.out, save_all=False, rng=random.Random(0)),
         logger, Options(conf=args.conf), start_seconds=start_seconds,
     )
 
