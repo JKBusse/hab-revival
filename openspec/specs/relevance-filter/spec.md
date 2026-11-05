@@ -21,15 +21,19 @@ Das System SHALL eine Box als relevant werten, wenn ihre Breite kleiner als 500 
 - **THEN** ist sie nicht relevant
 
 ### Requirement: Irrelevante Boxen werden markiert
-Das System SHALL irrelevante Boxen in der Visualisierung gelb darstellen, relevante nach Klasse (siehe Spec `monitoring`).
+Das System SHALL Boxen, die schmaler als 500 Pixel sind, aber mit ihrer oberen Kante nicht unter Zeile 160 liegen, in der Visualisierung gelb darstellen. Zu breite Boxen werden nach Klasse gefärbt (siehe Spec `monitoring`). Für die Entscheidung sind beide Fälle gleichermaßen nicht relevant.
 
 #### Scenario: Irrelevante Box im Stream
-- **WHEN** der Stream aktiv ist und eine Box die Aktive Fläche verfehlt
+- **WHEN** der Stream aktiv ist und eine schmale Box zu weit oben liegt
 - **THEN** wird sie gelb umrandet
 
 ### Requirement: Protokollierung der Bewertung
-Das System SHALL für jede Box Koordinaten, Breite, obere Kante und Bewertungsergebnis loggen.
+Das System SHALL für jede Box Koordinaten, Breite, obere Kante und Bewertungsergebnis loggen. Das Ergebnis ist `True` (relevant), `None` (schmal, aber zu weit oben) oder `False` (zu breit).
 
 #### Scenario: Bewertung einer Box
 - **WHEN** eine Box bewertet wird
 - **THEN** enthält das Log `Len`, `Hei` und `In active area`
+
+#### Scenario: Box zu weit oben
+- **WHEN** eine schmale Box mit oberer Kante bei y=100 bewertet wird
+- **THEN** steht im Log `In active area 0 : None`

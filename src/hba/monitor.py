@@ -1,0 +1,133 @@
+"""Monitoring: Logdatei im Legacy-Format, Boxdarstellung und Stream-Dateien.
+
+Meldungstexte und Reihenfolge wie in `legacy/yolov8.py`, damit vorhandene Auswertungen
+(zum Beispiel der Replay in `multi-box-decision`) weiter funktionieren.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+from dataclasses import replace
+from typing import Sequence
+
+import cv2
+
+from hba.ports import Box
+from hba.relevance import MAX_WIDTH, legacy_area_result
+
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+LOGGER_NAME = "HBA"
+
+YELLOW = (0, 255, 255)  # BGR
+RED = (0, 0, 255)
+WHITE = (255, 255, 255)
+MARGIN = 13  # Abstand der Box zur Detektion in Pixeln
+
+
+def setup_logger(log_dir: str, start_name: str) -> logging.Logger:
+    """Schreibt nach `<log_dir>/<start_name>.log` mit Stufe DEBUG.
+
+    Der Ordner muss existieren (wie im Original). Mehrfacher Aufruf hängt keine
+    doppelten Handler an.
+    """
+    logger = logging.getLogger(LOGGER_NAME)
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+    for handler in list(logger.handlers):
+        logger.removeHandler(handler)
+        handler.close()
+    handler = logging.FileHandler(os.path.join(log_dir, start_name + ".log"))
+    handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    logger.addHandler(handler)
+    return logger
+
+
+def log_start(logger: logging.Logger, start_name: str, args_repr: str) -> None:
+    logger.critical("---START---")
+    logger.info("Start Time: {}".format(start_name))
+    logger.info("Arguments: {}".format(args_repr))
+
+
+def log_end(logger: logging.Logger) -> None:
+    logger.critical("---END---\n")
+
+
+def log_frame_start(logger: logging.Logger) -> None:
+    logger.info("-Frame START-")
+
+
+def _log_area(logger: logging.Logger, box: Box):
+    """Entspricht dem Logteil von `get_active_area` und liefert dessen Ergebnis."""
+    logger.info("cord0: {} cord1: {} cord2: {} cord3: {}".format(box.x1, box.y1, box.x2, box.y2))
+    logger.info("Len: {} Hei: {}".format(box.width, box.top))
+    return legacy_area_result(box)
+
+
+def log_boxes(logger: logging.Logger, boxes: Sequence[Box]) -> None:
+    """Detektionsanzahl und Bewertung jeder Box."""
+    logger.info("Detections: {}".format(len(boxes)))
+    if len(boxes) == 0:
+        return
+    for index, box in enumerate(boxes):
+        result = _log_area(logger, box)
+        logger.info("In active area {} : {}".format(index, result))
+    if boxes[0].width >= MAX_WIDTH:
+        logger.info("No usefull detection")
+
+
+def log_status(logger: logging.Logger, status: int) -> None:
+    logger.info("HBA Status: {}".format(status))
+
+
+def log_frame_duration(logger: logging.Logger, seconds: float) -> None:
+    logger.info("DIFF: " + str(round(seconds, 4)))
+
+
+def annotate(image, boxes: Sequence[Box], logger: logging.Logger | None = None):
+    """Zeichnet die Boxen auf eine Kopie des Bilds.
+
+    gelb  Breite < 500, aber obere Kante <= 160 (Ergebnis `None`)
+    rot   Klasse 0 (back)
+    weiß  Klasse 1 (front)
+    Wie im Original wird die Bewertung auf den gerundeten Koordinaten berechnet.
+    """
+    out = image.copy()
+    for box in boxes:
+        rounded = replace(box, x1=round(box.x1), y1=round(box.y1), x2=round(box.x2), y2=round(box.y2))
+        if logger is not None:
+            result = _log_area(logger, rounded)
+        else:
+            result = legacy_area_result(rounded)
+        if result is None:
+            box_color, text_color = YELLOW, RED
+        elif int(box.cls) == 0:
+            box_color, text_color = RED, RED
+        else:
+            box_color, text_color = WHITE, WHITE
+        cv2.rectangle(
+            out,
+            (rounded.x1 - MARGIN, rounded.y1 - MARGIN),
+            (rounded.x2 + MARGIN, rounded.y2 + MARGIN),
+            box_color,
+            3,
+        )
+        cv2.putText(
+            out,
+            str(float(box.cls)).replace(".0", ""),
+            (rounded.x2 + 20, rounded.y2 + 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            text_color,
+            1,
+            cv2.LINE_AA,
+        )
+    return out
+
+
+def write_stream_frame(image, seconds: float, directory: str = "/tmp") -> str:
+    """Schreibt das annotierte Bild als `<directory>/<zeitstempel>.png` und liefert den Pfad."""
+    path = os.path.join(directory, str(seconds).replace(".", "") + ".png")
+    if not cv2.imwrite(path, image):
+        raise OSError(f"Stream-Bild konnte nicht geschrieben werden: {path}")
+    return path

@@ -12,5 +12,22 @@ MAX_WIDTH = 500  # Breite muss kleiner sein
 MIN_TOP = 160  # obere Kante (y1) muss größer sein
 
 
+def legacy_area_result(box: Box):
+    """Dreiwertiges Ergebnis wie im Original (für Log und Darstellung).
+
+    True   Breite < 500 und obere Kante > 160
+    None   Breite < 500, aber obere Kante <= 160 (das Original läuft ohne `return` aus)
+    False  Breite >= 500
+
+    Die Entscheidung unterscheidet nicht zwischen None und False, nur die Darstellung
+    (None wird gelb gezeichnet) und der Logtext tun es.
+    """
+    if box.width < MAX_WIDTH:
+        if box.top > MIN_TOP:
+            return True
+        return None
+    return False
+
+
 def is_relevant(box: Box) -> bool:
-    return box.width < MAX_WIDTH and box.top > MIN_TOP
+    return legacy_area_result(box) is True

@@ -23,3 +23,19 @@ def box(width, top):
 )
 def test_active_area(width, top, expected, szenario):
     assert is_relevant(box(width, top)) is expected, szenario
+
+
+from hba.relevance import legacy_area_result
+
+
+@pytest.mark.parametrize(
+    "width, top, expected",
+    [
+        (80, 250, True),
+        (520, 250, False),  # zu breit: False
+        (80, 100, None),  # zu weit oben: None (Legacy-Eigenheit, wird gelb gezeichnet)
+        (500, 100, False),  # beides: Breite entscheidet
+    ],
+)
+def test_legacy_three_valued_result(width, top, expected):
+    assert legacy_area_result(box(width, top)) is expected

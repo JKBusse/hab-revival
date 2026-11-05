@@ -20,11 +20,19 @@ Das System SHALL mit `-v` das Bild mit eingezeichneten Boxen in einem OpenCV-Fen
 - **THEN** wird `Manual end C in CV2` geloggt und das Programm beendet
 
 ### Requirement: Boxdarstellung
-Das System SHALL Boxen mit 13 Pixeln Abstand zeichnen: gelb für irrelevante Boxen (Aktive Fläche verfehlt), rot für Klasse 0 (`back`), weiß für Klasse 1 (`front`). Die Klassennummer steht neben der Box.
+Das System SHALL Boxen mit 13 Pixeln Abstand zeichnen: gelb, wenn die Box schmaler als 500 Pixel ist, ihre obere Kante aber nicht unter Zeile 160 liegt; rot für Klasse 0 (`back`); weiß für Klasse 1 (`front`). Zu breite Boxen (500 Pixel und mehr) werden nach Klasse gefärbt, nicht gelb (Legacy-Eigenheit). Die Klassennummer steht neben der Box.
 
 #### Scenario: Gegenverkehr im Stream
 - **WHEN** eine relevante Box der Klasse 1 gezeichnet wird
 - **THEN** ist sie weiß
+
+#### Scenario: Box zu weit oben
+- **WHEN** eine Box schmaler als 500 Pixel ist und ihre obere Kante bei y=100 liegt
+- **THEN** ist sie gelb
+
+#### Scenario: Zu breite Box
+- **WHEN** eine Box 560 Pixel breit ist und zur Klasse 1 gehört
+- **THEN** ist sie weiß und nicht gelb
 
 ### Requirement: Bild-Stream (`-S`)
 Das System SHALL mit `-S` in jedem Frame das annotierte Bild als PNG nach `/tmp/<zeitstempel>.png` schreiben. Der Flask-Dienst `stream2.py` SHALL auf `0.0.0.0:5000` unter `/stream` das jeweils neueste Bild aus `/tmp` als Multipart-Stream ausliefern (alle 0,3 s) und alle `.png`, `.jpg` und `.jpeg` in `/tmp` außer den neuesten 10 löschen.

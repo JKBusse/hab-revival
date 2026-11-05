@@ -20,8 +20,8 @@
 
 ## 4. Datensammlung und Monitoring
 
-- [ ] 4.1 Recorder in `recorder.py` umsetzen (Zeitstempel-Namen, Ausschnitte mit `-s`, 1 % Stichproben, 9 % Detektionsbeispiele, Limit 1000, YOLO-Label der ersten Box) und mit festem Zufalls-Seed in einem temporären Ordner verifizieren, dass Dateinamen, Limit und Label-Zeile der Spec `data-collection` entsprechen
-- [ ] 4.2 Monitoring in `monitor.py` umsetzen (Logdatei im Legacy-Format, Boxfarben gelb/rot/weiß mit 13 Pixel Abstand, Stream-Dateien in `/tmp`) und verifizieren, dass Logzeilen und Boxfarben (Pixelprobe) der Spec `monitoring` entsprechen
+- [x] 4.1 Recorder in `recorder.py` umsetzen (Zeitstempel-Namen, Ausschnitte mit `-s`, 1 % Stichproben, 9 % Detektionsbeispiele, Limit 1000, YOLO-Label der ersten Box) und mit festem Zufalls-Seed in einem temporären Ordner verifizieren, dass Dateinamen, Limit und Label-Zeile der Spec `data-collection` entsprechen
+- [x] 4.2 Monitoring in `monitor.py` umsetzen (Logdatei im Legacy-Format, Boxfarben gelb/rot/weiß mit 13 Pixel Abstand, Stream-Dateien in `/tmp`) und verifizieren, dass Logzeilen und Boxfarben (Pixelprobe) der Spec `monitoring` entsprechen
 
 ## 5. Adapter
 
