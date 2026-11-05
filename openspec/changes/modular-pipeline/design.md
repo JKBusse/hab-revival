@@ -37,7 +37,7 @@ Nur das, was Hardware oder Zeit berührt, liegt hinter einer Schnittstelle: `Cam
 
 ### 3. Die Entscheidung ist eine reine Funktion
 
-`decide(state, relevant_boxes, now_seconds) -> (state, status)` hält den Zustand (`lastDetectTimer`, `lastDetectTimer1`) explizit und bekommt die Zeit als ganze Sekunden übergeben, so wie das Original mit `int(time.time())` rechnet. Das ist die Voraussetzung für den Replay mit echten Logs in `multi-box-decision`.
+`decide(state, boxes, detect_seconds, status_seconds, conf_threshold) -> (state, status)` hält den Zustand (`lastDetectTimer`, `lastDetectTimer1`) explizit und bekommt die Zeit als ganze Sekunden übergeben, so wie das Original mit `int(time.time())` rechnet. Es sind zwei Sekundenwerte, weil das Original die Uhr bei der Detektion und beim Status getrennt liest. Der Replay in `multi-box-decision` hatte nur mit beiden 0 Abweichungen. Das ist die Voraussetzung für den Replay mit echten Logs in `multi-box-decision`.
 
 ### 4. Zufall und Zeit sind einspeisbar
 

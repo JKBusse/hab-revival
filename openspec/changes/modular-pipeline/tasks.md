@@ -14,9 +14,9 @@
 
 ## 3. Reine Logik
 
-- [ ] 3.1 Bildaufbereitung (Drehen um 180°, Zuschnitt `[0:850]` und `[212:638, 400:1360]`, Resize 640×640 mit INTER_AREA) in `capture.py` umsetzen und per Golden-Test verifizieren, dass das Ergebnis Pixel für Pixel dem Legacy-Slicing auf einem Testbild entspricht
-- [ ] 3.2 Relevanzfilter (Breite < 500, obere Kante > 160) in `relevance.py` umsetzen und verifizieren, dass die Szenarien aus der Spec `relevance-filter` als Tabellentest bestehen
-- [ ] 3.3 Entscheidungsfunktion in `decision.py` mit allen Legacy-Eigenheiten (Start abgeblendet für 3 s, Drosselung auf eine Aktualisierung pro Sekunde, erste Box, sofortiges Abblenden, Aufblenden nach 3 s) umsetzen und verifizieren, dass die Szenarien aus der Spec `high-beam-decision` einschließlich „Zweites Fahrzeug relevant, erstes nicht" als Tests bestehen
+- [x] 3.1 Bildaufbereitung (Drehen um 180°, Zuschnitt `[0:850]` und `[212:638, 400:1360]`, Resize 640×640 mit INTER_AREA) in `capture.py` umsetzen und per Golden-Test verifizieren, dass das Ergebnis Pixel für Pixel dem Legacy-Slicing auf einem Testbild entspricht
+- [x] 3.2 Relevanzfilter (Breite < 500, obere Kante > 160) in `relevance.py` umsetzen und verifizieren, dass die Szenarien aus der Spec `relevance-filter` als Tabellentest bestehen
+- [x] 3.3 Entscheidungsfunktion in `decision.py` mit allen Legacy-Eigenheiten (Start abgeblendet für 3 s, Drosselung auf eine Aktualisierung pro Sekunde, erste Box, sofortiges Abblenden, Aufblenden nach 3 s) umsetzen und verifizieren, dass die Szenarien aus der Spec `high-beam-decision` einschließlich „Zweites Fahrzeug relevant, erstes nicht" als Tests bestehen
 
 ## 4. Datensammlung und Monitoring
 
