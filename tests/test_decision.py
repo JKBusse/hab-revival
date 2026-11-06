@@ -77,24 +77,7 @@ def test_throttle_blocks_a_second_update_in_the_same_second():
     assert state.last_detect == 0  # unverändert (Legacy-Eigenheit: Drossel unabhängig von Relevanz)
 
 
-# --- Legacy-Eigenheiten (werden in multi-box-decision geändert) -------------
-
-def test_legacy_second_vehicle_relevant_first_not_does_not_update():
-    """Zweites Fahrzeug relevant, erstes nicht: Zeitpunkt wird NICHT aktualisiert."""
-    state = DecisionState(last_detect=100, last_frame_with_boxes=0)
-    state, status = step(state, [irrelevant(), car()], 200)
-    assert state.last_detect == 100
-    assert status == 1  # Fernlicht trotz sichtbarem Gegenverkehr freigegeben
-
-
-def test_legacy_confidence_is_taken_from_the_last_box():
-    state = DecisionState(last_detect=100, last_frame_with_boxes=0)
-    low_last = [car(conf=0.9), car(conf=0.3)]
-    state, _ = step(state, low_last, 200)
-    assert state.last_detect == 100  # letzte Box unter der Schwelle
-    state2, _ = step(DecisionState(100, 0), [car(conf=0.3), car(conf=0.9)], 200)
-    assert state2.last_detect == 200  # letzte Box über der Schwelle
-
+# --- Zeitpunkte ---------------------------------------------------------------------------
 
 def test_separate_seconds_for_detection_and_status():
     # Detektion bei Sekunde 200, Status bei 203: liegt genau 3 s dahinter, also frei.
@@ -106,3 +89,35 @@ def test_decide_does_not_mutate_state():
     state = DecisionState(100, 0)
     decide(state, [car()], 200, 200, CONF)
     assert state == DecisionState(100, 0)
+
+
+# --- multi-box-decision: alle Boxen werden bewertet --------------------------------------
+
+def test_second_vehicle_relevant_first_not_updates_and_dims():
+    state = DecisionState(last_detect=100, last_frame_with_boxes=0)
+    state, status = step(state, [irrelevant(), car()], 200)
+    assert state.last_detect == 200
+    assert status == 0
+
+
+def test_first_vehicle_relevant_second_not_updates():
+    state = DecisionState(last_detect=100, last_frame_with_boxes=0)
+    state, status = step(state, [car(), irrelevant()], 200)
+    assert state.last_detect == 200
+    assert status == 0
+
+
+def test_no_box_relevant_does_not_update():
+    state = DecisionState(last_detect=100, last_frame_with_boxes=0)
+    state, status = step(state, [irrelevant(), irrelevant()], 200)
+    assert state.last_detect == 100
+    assert status == 1
+
+
+def test_confidence_is_checked_per_box():
+    # Eine relevante Box mit ausreichender Konfidenz genügt, auch wenn eine andere darunter liegt.
+    state, _ = step(DecisionState(100, 0), [car(conf=0.9), car(conf=0.3)], 200)
+    assert state.last_detect == 200
+    # Eine Box unter der Schwelle zählt nicht.
+    state, _ = step(DecisionState(100, 0), [car(conf=0.3)], 200)
+    assert state.last_detect == 100

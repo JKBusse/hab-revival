@@ -1,15 +1,19 @@
 """Entscheidung: Fernlicht erlaubt (1) oder abgeblendet (0).
 
-Reine Funktion mit explizitem Zustand, ohne Uhr und ohne Hardware. Sie bildet die
-Logik aus `legacy/yolov8.py` (Zeilen 138, 211 bis 234, 288) einschließlich der
-bekannten Eigenheiten nach, damit sich der Umbau gegen die Baseline prüfen lässt:
+Reine Funktion mit explizitem Zustand, ohne Uhr und ohne Hardware. Ein Frame aktualisiert den
+Zeitpunkt der letzten Detektion, sobald MINDESTENS EINE Box relevant ist (Geometrie der Aktiven
+Fläche und Konfidenz ab dem Schwellwert), unabhängig von ihrer Position in der Liste.
 
-* Die Geometrie bewertet nur die ERSTE Box, die Konfidenz nur die LETZTE Box
-  (Folge-Change `multi-box-decision`).
-* Die Drosselung hängt nur davon ab, ob der Frame überhaupt Boxen enthielt.
+Die Drosselung hängt nur davon ab, ob der Frame überhaupt Boxen enthielt, nicht von deren
+Relevanz (unverändert gegenüber dem Original, `legacy/yolov8.py`, Zeilen 211 bis 234 und 288).
 
-Zeiten sind ganze Sekunden (`int(time.time())`). Das Original liest die Uhr an zwei
-Stellen (bei der Detektion und beim Status), daher zwei Argumente.
+Zeiten sind ganze Sekunden (`int(time.time())`). Das Original liest die Uhr an zwei Stellen
+(bei der Detektion und beim Status), daher zwei Argumente.
+
+Nie weniger Abblenden als vorher (Change `multi-box-decision`): Die Menge der Frames, die
+aktualisieren, ist eine Obermenge der früheren (erste Box relevant => irgendeine Box relevant).
+Damit ist der Zeitpunkt der letzten Detektion nie früher und der Status nie höher als bei der
+alten Logik. Das belegen der Replay mit echten Logs und der Property-Test.
 """
 
 from __future__ import annotations
@@ -47,8 +51,7 @@ def decide(
     last_frame = state.last_frame_with_boxes
 
     if len(boxes) > 0:
-        # Legacy-Eigenheit: Geometrie der ersten, Konfidenz der letzten Box.
-        if is_relevant(boxes[0]) and boxes[-1].conf >= conf_threshold:
+        if any(is_relevant(box) and box.conf >= conf_threshold for box in boxes):
             if last_frame + THROTTLE_SECONDS <= detect_seconds:
                 last_detect = detect_seconds
         last_frame = detect_seconds
