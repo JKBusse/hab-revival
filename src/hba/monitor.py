@@ -14,6 +14,7 @@ from typing import Sequence
 import cv2
 
 from hba.ports import Box
+from hba.config import RelevanceConfig
 from hba.relevance import MAX_WIDTH, legacy_area_result
 
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -49,6 +50,17 @@ def log_start(logger: logging.Logger, start_name: str, args_repr: str) -> None:
     logger.info("Arguments: {}".format(args_repr))
 
 
+def log_config(logger: logging.Logger, loaded) -> None:
+    """Die effektiven Werte mit ihrer Quelle (Flag, Datei, Standard) und Warnungen."""
+    from hba.config import describe
+
+    logger.info("Konfigurationsdatei: %s", loaded.path if loaded.path else "keine (nur Standardwerte)")
+    for line in describe(loaded):
+        logger.info(line)
+    for warning in loaded.warnings:
+        logger.warning(warning)
+
+
 def log_end(logger: logging.Logger) -> None:
     logger.critical("---END---\n")
 
@@ -57,22 +69,22 @@ def log_frame_start(logger: logging.Logger) -> None:
     logger.info("-Frame START-")
 
 
-def _log_area(logger: logging.Logger, box: Box):
+def _log_area(logger: logging.Logger, box: Box, relevance: RelevanceConfig | None = None):
     """Entspricht dem Logteil von `get_active_area` und liefert dessen Ergebnis."""
     logger.info("cord0: {} cord1: {} cord2: {} cord3: {}".format(box.x1, box.y1, box.x2, box.y2))
     logger.info("Len: {} Hei: {}".format(box.width, box.top))
-    return legacy_area_result(box)
+    return legacy_area_result(box, relevance)
 
 
-def log_boxes(logger: logging.Logger, boxes: Sequence[Box]) -> None:
+def log_boxes(logger: logging.Logger, boxes: Sequence[Box], relevance: RelevanceConfig | None = None) -> None:
     """Detektionsanzahl und Bewertung jeder Box."""
     logger.info("Detections: {}".format(len(boxes)))
     if len(boxes) == 0:
         return
     for index, box in enumerate(boxes):
-        result = _log_area(logger, box)
+        result = _log_area(logger, box, relevance)
         logger.info("In active area {} : {}".format(index, result))
-    if boxes[0].width >= MAX_WIDTH:
+    if boxes[0].width >= (relevance.max_width if relevance else MAX_WIDTH):
         logger.info("No usefull detection")
 
 
@@ -84,7 +96,7 @@ def log_frame_duration(logger: logging.Logger, seconds: float) -> None:
     logger.info("DIFF: " + str(round(seconds, 4)))
 
 
-def annotate(image, boxes: Sequence[Box], logger: logging.Logger | None = None):
+def annotate(image, boxes: Sequence[Box], logger: logging.Logger | None = None, relevance: RelevanceConfig | None = None):
     """Zeichnet die Boxen auf eine Kopie des Bilds.
 
     gelb  Breite < 500, aber obere Kante <= 160 (Ergebnis `None`)
@@ -96,9 +108,9 @@ def annotate(image, boxes: Sequence[Box], logger: logging.Logger | None = None):
     for box in boxes:
         rounded = replace(box, x1=round(box.x1), y1=round(box.y1), x2=round(box.x2), y2=round(box.y2))
         if logger is not None:
-            result = _log_area(logger, rounded)
+            result = _log_area(logger, rounded, relevance)
         else:
-            result = legacy_area_result(rounded)
+            result = legacy_area_result(rounded, relevance)
         if result is None:
             box_color, text_color = YELLOW, RED
         elif int(box.cls) == 0:

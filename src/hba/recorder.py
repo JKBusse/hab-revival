@@ -8,7 +8,7 @@ Verhalten wie im Legacy-Skript `legacy/yolov8.py` (Zeilen 79 bis 86, 158 bis 173
 * Ordner werden nicht angelegt. Fehlt einer, wird eine Exception geworfen
   (wird im Change `systemd-service` zu einer Warnung).
 
-Zeit und Zufall werden eingespeist (`name`, `rng`), damit Tests deterministisch sind.
+Zeit und Zufall werden eingespeist (`name`, `rng` mit `random()`), damit Tests deterministisch sind.
 """
 
 from __future__ import annotations
@@ -22,9 +22,14 @@ import cv2
 
 from hba.ports import Box
 
-MAX_FILES = 1000
-SAMPLE_VALUE = 42  # randrange(1, 100) == 42  ->  etwa 1 % der Frames
-DETECTION_THRESHOLD = 90  # randrange(1, 100) > 90  ->  etwa 9 % der Frames mit Detektion
+from hba.config import DEFAULTS, RecordingConfig
+
+MAX_FILES = DEFAULTS["recording"]["max_files"]
+# Standardwahrscheinlichkeiten wie im Original: randrange(1, 100) == 42 (1 von 99 Frames) und
+# randrange(1, 100) > 90 (9 von 99 Frames mit Detektion). Statt ganzer Zufallszahlen gelten
+# jetzt Wahrscheinlichkeiten (`rng.random() < p`), damit sie konfigurierbar sind.
+SAMPLE_PROBABILITY = DEFAULTS["recording"]["sample_probability"]
+DETECTION_PROBABILITY = DEFAULTS["recording"]["detection_probability"]
 
 
 def timestamp_name(seconds: float) -> str:
@@ -61,11 +66,32 @@ def label_line(cls: int, box: Box) -> str:
 
 
 class Recorder:
-    def __init__(self, base_path: str, save_all: bool, rng: random.Random, max_files_per_folder: int = MAX_FILES):
+    def __init__(
+        self,
+        base_path: str,
+        save_all: bool,
+        rng: random.Random,
+        max_files_per_folder: int = MAX_FILES,
+        sample_probability: float = SAMPLE_PROBABILITY,
+        detection_probability: float = DETECTION_PROBABILITY,
+    ):
         self.base_path = base_path
         self.save_all = save_all
         self.rng = rng
         self.max_files_per_folder = max_files_per_folder
+        self.sample_probability = sample_probability
+        self.detection_probability = detection_probability
+
+    @classmethod
+    def from_config(cls, recording: RecordingConfig, save_all: bool, rng: random.Random) -> "Recorder":
+        return cls(
+            recording.path,
+            save_all,
+            rng,
+            max_files_per_folder=recording.max_files,
+            sample_probability=recording.sample_probability,
+            detection_probability=recording.detection_probability,
+        )
 
     def _path(self, *parts: str) -> str:
         return os.path.join(self.base_path, *parts)
@@ -74,7 +100,7 @@ class Recorder:
         """Schritt vor der Erkennung: `-s` und die 1-%-Stichprobe (Ausschnitt 960x426)."""
         if self.save_all:
             _write_image(self._path("images", "crop", name + ".png"), crop)
-        if self.rng.randrange(1, 100) == SAMPLE_VALUE:
+        if self.rng.random() < self.sample_probability:
             _write_image(self._path("images", "random", name + ".png"), crop)
             max_files(self._path("images", "random"), self.max_files_per_folder)
 
@@ -82,7 +108,7 @@ class Recorder:
         """Schritt nach der Erkennung: in etwa 9 % der Frames mit Boxen Bild und Label der ersten Box."""
         if len(boxes) == 0:
             return
-        if self.rng.randrange(1, 100) > DETECTION_THRESHOLD:
+        if self.rng.random() < self.detection_probability:
             _write_image(self._path("images", "detections", name + ".png"), model_input)
             first = boxes[0]
             with open(self._path("labels", "detections", name + ".txt"), "w") as handle:

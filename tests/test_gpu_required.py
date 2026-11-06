@@ -27,8 +27,8 @@ TESTS_DIR = os.path.dirname(__file__)
 
 
 class NoRandom:
-    def randrange(self, a, b):
-        return 1
+    def random(self):
+        return 0.99
 
 
 class RecordingLifecycle:
@@ -237,7 +237,7 @@ def run_child(tmp_path, body, timeout=60):
         class SystemClock:
             def now(self): return time.time()
         class NoRandom:
-            def randrange(self, a, b): return 1
+            def random(self): return 0.99
         def pipeline_with(detector, **kw):
             return Pipeline(FakeCamera([FRAME] * 10), detector, link, SystemClock(),
                             Recorder({log_dir!r}, save_all=False, rng=NoRandom()), logger, **kw)

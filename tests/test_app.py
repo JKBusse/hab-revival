@@ -23,8 +23,8 @@ CAR = Box(x1=100, y1=250, x2=180, y2=300, cls=1, conf=0.9)
 class NoRandom:
     """Zufall, der nie etwas speichert."""
 
-    def randrange(self, a, b):
-        return 1
+    def random(self):
+        return 0.99
 
 
 @pytest.fixture
@@ -164,8 +164,8 @@ def test_detection_example_saved_before_boxes_are_drawn(tmp_path, logger):
         (tmp_path / sub).mkdir(parents=True)
 
     class AlwaysSave:
-        def randrange(self, a, b):
-            return 99
+        def random(self):
+            return 0.09  # unter 9/99: Detektionsbeispiel; über 1/99: keine Stichprobe
 
     camera = FakeCamera([FRAME])
     pipeline = Pipeline(
@@ -173,7 +173,7 @@ def test_detection_example_saved_before_boxes_are_drawn(tmp_path, logger):
         Recorder(str(tmp_path), save_all=False, rng=AlwaysSave()), logger,
         options=Options(stream=True, stream_dir=str(tmp_path)),
     )
-    # randrange(...) == 42 nie, > 90 immer: 99 -> nur Detektionsbeispiel
+    # 0,09: keine Zufallsstichprobe (>= 1/99), aber Detektionsbeispiel (< 9/99)
     pipeline.step()
     saved = cv2.imread(str(tmp_path / "images/detections" / os.listdir(tmp_path / "images/detections")[0]))
     assert not saved.any()  # keine gezeichneten Boxen im gespeicherten Bild

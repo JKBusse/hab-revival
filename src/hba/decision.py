@@ -21,10 +21,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
+from hba.config import RelevanceConfig
 from hba.ports import Box
 from hba.relevance import is_relevant
 
-HOLD_SECONDS = 3  # so lange nach der letzten Detektion bleibt abgeblendet
+HOLD_SECONDS = 3  # Standard: so lange nach der letzten Detektion bleibt abgeblendet
 THROTTLE_SECONDS = 1  # Aktualisierung höchstens einmal pro ganzer Sekunde
 
 
@@ -45,16 +46,19 @@ def decide(
     detect_seconds: int,
     status_seconds: int,
     conf_threshold: float,
+    *,
+    hold_seconds: float = HOLD_SECONDS,
+    relevance: RelevanceConfig | None = None,
 ) -> tuple[DecisionState, int]:
     """Liefert den neuen Zustand und den Status (1 = Fernlicht erlaubt, 0 = abgeblendet)."""
     last_detect = state.last_detect
     last_frame = state.last_frame_with_boxes
 
     if len(boxes) > 0:
-        if any(is_relevant(box) and box.conf >= conf_threshold for box in boxes):
+        if any(is_relevant(box, relevance) and box.conf >= conf_threshold for box in boxes):
             if last_frame + THROTTLE_SECONDS <= detect_seconds:
                 last_detect = detect_seconds
         last_frame = detect_seconds
 
-    status = 1 if last_detect + HOLD_SECONDS <= status_seconds else 0
+    status = 1 if last_detect + hold_seconds <= status_seconds else 0
     return DecisionState(last_detect, last_frame), status

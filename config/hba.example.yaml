@@ -1,0 +1,49 @@
+# Beispiel-Konfiguration für den High Beam Assist.
+# Alle Schlüssel mit den eingebauten Standardwerten (= bisheriges Verhalten).
+# Ohne Datei läuft das Programm mit genau diesen Werten.
+# Reihenfolge: Kommandozeilen-Flag, dann diese Datei, dann Standard.
+#
+# Aufruf:  python -m hba --config /pfad/hba.yaml
+#          (ohne --config wird ./hba.yaml verwendet, falls vorhanden)
+
+camera:
+  device: 0            # /dev/video<device>
+  width: 1920
+  height: 1080
+  rotate_180: true     # Kamera ist kopfüber montiert
+  exposure: 1          # 1 = manuell, 3 = automatisch
+  exposure_time: 700   # 0 bis 5000
+  brightness: null     # -180 bis 180; gesetzt: automatische Belichtung
+
+image:
+  hood_rows: 850                # Zeilen ab hier werden verworfen (Motorhauben-Spiegelung)
+  crop_rows: [212, 638]         # Erkennungsausschnitt, Zeilen von bis
+  crop_cols: [400, 1360]        # Erkennungsausschnitt, Spalten von bis
+
+detection:
+  model: /home/jkb/HBA4v2Dataset/HBAv5/medium6/weights/best.pt
+  device: "0"          # GPU-Index; "cpu" nur für Entwicklung
+  conf: 0.4            # Konfidenzschwelle, 0 bis 1
+
+relevance:             # Aktive Fläche im 640x640-Eingabebild
+  max_width: 500       # Box muss schmaler sein
+  min_top: 160         # obere Kante muss weiter unten liegen
+
+decision:
+  hold_seconds: 3      # so lange nach der letzten Detektion bleibt abgeblendet
+                       # (unter 3 s: Warnung beim Start; kleiner oder gleich 0: Fehler)
+
+serial:
+  port: /dev/ttyUSB0
+  baudrate: 9600
+
+recording:
+  path: /mnt/hba-stick/HBA/
+  sample_probability: 0.010101010101010102      # Zufallsbilder (1 von 99 Frames)
+  detection_probability: 0.09090909090909091    # Detektionsbeispiele (9 von 99 Frames mit Boxen)
+  max_files: 1000
+
+output:
+  video: false         # Live-Fenster
+  stream: false        # Bild-Stream nach /tmp
+  save: false          # jeden Ausschnitt speichern

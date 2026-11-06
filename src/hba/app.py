@@ -15,6 +15,7 @@ from typing import Callable
 
 from hba import monitor
 from hba.capture import prepare_frame
+from hba.config import Config
 from hba.decision import decide, initial_state
 from hba.detect import GpuUnavailable, is_cuda_error
 from hba.ports import Actuator, Camera, Clock, Detector
@@ -34,6 +35,17 @@ class Options:
     video: bool = False
     stream: bool = False
     stream_dir: str = "/tmp"
+    config: Config = Config.defaults()  # Bildaufbereitung, Aktive Fläche, Haltezeit
+
+    @classmethod
+    def from_config(cls, config: Config, stream_dir: str = "/tmp") -> "Options":
+        return cls(
+            conf=config.detection.conf,
+            video=config.output.video,
+            stream=config.output.stream,
+            stream_dir=stream_dir,
+            config=config,
+        )
 
 
 @dataclass(frozen=True)
@@ -100,7 +112,7 @@ class Pipeline:
             raise outcome["error"]
 
     def _warm_up_once(self) -> None:
-        _, model_input = prepare_frame(self.camera.read())
+        _, model_input = prepare_frame(self.camera.read(), self.options.config)
         self.detector.detect(model_input)
 
     def step(self) -> StepResult:
@@ -108,11 +120,11 @@ class Pipeline:
         name = timestamp_name(self.clock.now())
 
         frame = self.camera.read()
-        crop, model_input = prepare_frame(frame)
+        crop, model_input = prepare_frame(frame, self.options.config)
         self.recorder.record_frame(name, crop)
 
         boxes = self.detector.detect(model_input)
-        monitor.log_boxes(self.logger, boxes)
+        monitor.log_boxes(self.logger, boxes, self.options.config.relevance)
         detect_seconds = int(self.clock.now())
 
         if len(boxes) > 0:
@@ -120,14 +132,18 @@ class Pipeline:
 
         image = model_input
         if self.options.stream or self.options.video:
-            image = monitor.annotate(model_input, boxes, logger=self.logger) if len(boxes) > 0 else model_input
+            image = monitor.annotate(model_input, boxes, logger=self.logger, relevance=self.options.config.relevance) if len(boxes) > 0 else model_input
         if self.options.video and self.show is not None:
             self.show(image)
         if self.options.stream:
             monitor.write_stream_frame(image, self.clock.now(), self.options.stream_dir)
 
         status_seconds = int(self.clock.now())
-        self.state, status = decide(self.state, boxes, detect_seconds, status_seconds, self.options.conf)
+        self.state, status = decide(
+            self.state, boxes, detect_seconds, status_seconds, self.options.conf,
+            hold_seconds=self.options.config.decision.hold_seconds,
+            relevance=self.options.config.relevance,
+        )
         monitor.log_status(self.logger, status)
         self.actuator.set_status(status)
 

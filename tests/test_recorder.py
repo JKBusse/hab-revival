@@ -9,15 +9,19 @@ from hba.recorder import MAX_FILES, Recorder, label_line, max_files, timestamp_n
 
 
 class ScriptedRandom:
-    """Liefert vorgegebene randrange-Werte und merkt sich die Aufrufe."""
+    """Liefert vorgegebene random()-Werte und merkt sich die Aufrufe."""
 
     def __init__(self, values):
         self.values = list(values)
-        self.calls = []
+        self.calls = 0
 
-    def randrange(self, start, stop):
-        self.calls.append((start, stop))
+    def random(self):
+        self.calls += 1
         return self.values.pop(0)
+
+
+NO = 0.5  # über jeder Standardwahrscheinlichkeit: wird nicht gespeichert
+YES = 0.0001  # unter jeder Standardwahrscheinlichkeit: wird gespeichert
 
 
 @pytest.fixture
@@ -40,25 +44,25 @@ def test_timestamp_name_matches_example():
 
 
 def test_save_flag_writes_crop_each_frame(base):
-    rec = Recorder(str(base) + "/", save_all=True, rng=ScriptedRandom([1, 1]))
+    rec = Recorder(str(base) + "/", save_all=True, rng=ScriptedRandom([NO, NO]))
     rec.record_frame("a", CROP)
     rec.record_frame("b", CROP)
     assert files(base, "images/crop") == ["a.png", "b.png"]
 
 
 def test_without_save_flag_no_crops(base):
-    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([1]))
+    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([NO]))
     rec.record_frame("a", CROP)
     assert files(base, "images/crop") == []
 
 
-def test_random_sample_only_for_value_42_even_without_save_flag(base):
-    rng = ScriptedRandom([41, 42, 43])
+def test_random_sample_only_below_the_probability_even_without_save_flag(base):
+    rng = ScriptedRandom([NO, YES, NO])
     rec = Recorder(str(base), save_all=False, rng=rng)
     for name in ("a", "b", "c"):
         rec.record_frame(name, CROP)
     assert files(base, "images/random") == ["b.png"]
-    assert rng.calls == [(1, 100)] * 3
+    assert rng.calls == 3
 
 
 def test_random_folder_limit_deletes_oldest_first(base):
@@ -67,7 +71,7 @@ def test_random_folder_limit_deletes_oldest_first(base):
         path = folder / f"old{i}.png"
         path.write_bytes(b"x")
         os.utime(path, (1000 + i, 1000 + i))  # old0 ist am ältesten
-    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([42]), max_files_per_folder=3)
+    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([YES]), max_files_per_folder=3)
     rec.record_frame("new", CROP)
     remaining = files(base, "images/random")
     assert len(remaining) == 3
@@ -113,7 +117,7 @@ def test_label_matches_legacy_formatting():
 
 
 def test_detection_example_writes_image_and_first_box_label_only(base):
-    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([91]))
+    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([YES]))
     rec.record_detection("t1", MODEL_INPUT, [FIRST, SECOND])
     assert files(base, "images/detections") == ["t1.png"]
     assert files(base, "labels/detections") == ["t1.txt"]
@@ -123,7 +127,7 @@ def test_detection_example_writes_image_and_first_box_label_only(base):
 
 
 def test_detection_example_probability_boundary(base):
-    rng = ScriptedRandom([90, 91])
+    rng = ScriptedRandom([9 / 99, 9 / 99 - 1e-9])  # genau die Wahrscheinlichkeit zählt nicht, knapp darunter schon
     rec = Recorder(str(base), save_all=False, rng=rng)
     rec.record_detection("a", MODEL_INPUT, [FIRST])
     rec.record_detection("b", MODEL_INPUT, [FIRST])
@@ -134,11 +138,11 @@ def test_frame_without_boxes_does_not_draw_random_number(base):
     rng = ScriptedRandom([])
     rec = Recorder(str(base), save_all=False, rng=rng)
     rec.record_detection("a", MODEL_INPUT, [])
-    assert rng.calls == []
+    assert rng.calls == 0
 
 
 def test_missing_folder_raises(tmp_path):
-    rec = Recorder(str(tmp_path), save_all=True, rng=ScriptedRandom([1]))
+    rec = Recorder(str(tmp_path), save_all=True, rng=ScriptedRandom([NO]))
     with pytest.raises(OSError):
         rec.record_frame("a", CROP)
 

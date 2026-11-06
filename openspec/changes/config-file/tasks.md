@@ -2,18 +2,18 @@
 
 ## 1. Konfiguration
 
-- [ ] 1.1 Konfigurationsmodell mit allen Standardwerten der Baseline in `config.py` schreiben und per Test verifizieren, dass ein Start ohne Datei exakt die Legacy-Werte ergibt
-- [ ] 1.2 Laden aus YAML mit `ruamel.yaml`, Vorrang Flag vor Datei vor Standard und Pfadauflösung (`--config`, `./hba.yaml`) umsetzen und verifizieren, dass die Szenarien „Start ohne Datei", „Angegebene Datei fehlt" und „Flag und Datei widersprechen sich" als Tests bestehen
-- [ ] 1.3 Prüfung beim Start umsetzen (unbekannte Schlüssel, Typen, Bereiche, Ausschnitt innerhalb des Bildes, Sammelmeldung, Exit-Code 2) und verifizieren, dass „Tippfehler im Schlüssel" und „Ausschnitt ragt hinaus" als Tests bestehen
-- [ ] 1.4 Warnung bei Haltezeit unter 3 s umsetzen und verifizieren, dass der Start mit 1 s gelingt und die Warnung im Log steht, während 0 s und −1 s abbrechen
-- [ ] 1.5 Beim Start die effektiven Werte mit Quelle (Flag, Datei, Standard) loggen und verifizieren, dass jede Quelle in einem Test erscheint
-- [ ] 1.6 `config/hba.example.yaml` schreiben und per Test verifizieren, dass sie geladen die eingebauten Standardwerte ergibt
+- [x] 1.1 Konfigurationsmodell mit allen Standardwerten der Baseline in `config.py` schreiben und per Test verifizieren, dass ein Start ohne Datei exakt die Legacy-Werte ergibt
+- [x] 1.2 Laden aus YAML mit `ruamel.yaml`, Vorrang Flag vor Datei vor Standard und Pfadauflösung (`--config`, `./hba.yaml`) umsetzen und verifizieren, dass die Szenarien „Start ohne Datei", „Angegebene Datei fehlt" und „Flag und Datei widersprechen sich" als Tests bestehen
+- [x] 1.3 Prüfung beim Start umsetzen (unbekannte Schlüssel, Typen, Bereiche, Ausschnitt innerhalb des Bildes, Sammelmeldung, Exit-Code 2) und verifizieren, dass „Tippfehler im Schlüssel" und „Ausschnitt ragt hinaus" als Tests bestehen
+- [x] 1.4 Warnung bei Haltezeit unter 3 s umsetzen und verifizieren, dass der Start mit 1 s gelingt und die Warnung im Log steht, während 0 s und −1 s abbrechen
+- [x] 1.5 Beim Start die effektiven Werte mit Quelle (Flag, Datei, Standard) loggen und verifizieren, dass jede Quelle in einem Test erscheint
+- [x] 1.6 `config/hba.example.yaml` schreiben und per Test verifizieren, dass sie geladen die eingebauten Standardwerte ergibt
 
 ## 2. Pipeline anschließen
 
-- [ ] 2.1 Bildaufbereitung (Drehung, `hood_rows`, Ausschnitt, Auflösung) auf die Konfiguration umstellen und per Golden-Test verifizieren, dass die Standardwerte Pixel für Pixel das bisherige Ergebnis liefern und ein geänderter Ausschnitt die erwartete Größe hat
-- [ ] 2.2 Relevanzfilter und Haltezeit (einschließlich Start) auf die Konfiguration umstellen und verifizieren, dass die geänderten Szenarien aus den Delta-Specs und der Replay-Test aus `multi-box-decision` mit Standardwerten unverändert bestehen
-- [ ] 2.3 Serial-Port, Baudrate, Stichproben-Wahrscheinlichkeiten und Dateilimit umstellen und verifizieren, dass ein Pseudo-Terminal-Test den konfigurierten Port nutzt
+- [x] 2.1 Bildaufbereitung (Drehung, `hood_rows`, Ausschnitt, Auflösung) auf die Konfiguration umstellen und per Golden-Test verifizieren, dass die Standardwerte Pixel für Pixel das bisherige Ergebnis liefern und ein geänderter Ausschnitt die erwartete Größe hat
+- [x] 2.2 Relevanzfilter und Haltezeit (einschließlich Start) auf die Konfiguration umstellen und verifizieren, dass die geänderten Szenarien aus den Delta-Specs und der Replay-Test aus `multi-box-decision` mit Standardwerten unverändert bestehen
+- [x] 2.3 Serial-Port, Baudrate, Stichproben-Wahrscheinlichkeiten und Dateilimit umstellen und verifizieren, dass ein Pseudo-Terminal-Test den konfigurierten Port nutzt
 
 ## 3. Kalibrier-Werkzeug
 
