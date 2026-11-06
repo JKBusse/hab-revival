@@ -62,6 +62,15 @@ class Pipeline:
         self.state = initial_state(int(clock.now()) if start_seconds is None else start_seconds)
         self._old_time = 0.0  # Legacy: oldTime = 0, daher ist die erste Frame-Dauer riesig
 
+    def warm_up(self) -> None:
+        """Verarbeitet einen Frame ohne Entscheidung und ohne Aktor-Zugriff.
+
+        Der erste Aufruf des Modells dauert deutlich länger (CUDA-Initialisierung) und würde
+        sonst die Staleness-Regel des Aktors auslösen. Der Frame wird verworfen.
+        """
+        _, model_input = prepare_frame(self.camera.read())
+        self.detector.detect(model_input)
+
     def step(self) -> StepResult:
         monitor.log_frame_start(self.logger)
         name = timestamp_name(self.clock.now())

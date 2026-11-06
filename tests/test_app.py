@@ -2,13 +2,15 @@ import logging
 import os
 import pty
 import select
+import threading
+import time
 
 import numpy as np
 import pytest
 
 from fakes import FakeActuator, FakeCamera, FakeClock, FakeDetector
 from hba import monitor
-from hba.actuator import SerialActuator
+from hba.actuator import ActuatorLink
 from hba.app import Options, Pipeline
 from hba.ports import Box
 from hba.recorder import Recorder
@@ -59,19 +61,38 @@ def test_programmed_sequence_gives_expected_status_sequence(tmp_path, logger):
     assert actuator.statuses == EXPECTED
 
 
+def wait_for_last_token(master, expected, timeout=2.0):
+    data, end = b"", time.time() + timeout
+    while time.time() < end:
+        if select.select([master], [], [], 0.02)[0]:
+            data += os.read(master, 4096)
+            tokens = data.split()
+            if tokens and tokens[-1] == expected:
+                return data.split()
+    return data.split()
+
+
+def collapse(items):
+    out = []
+    for item in items:
+        if not out or out[-1] != item:
+            out.append(item)
+    return out
+
+
 def test_end_to_end_with_pseudo_terminal(tmp_path, logger):
     master, slave = pty.openpty()
     try:
-        actuator = SerialActuator(port=os.ttyname(slave))
+        actuator = ActuatorLink(port=os.ttyname(slave))
         pipeline, clock = make_pipeline(tmp_path, logger, BOXES, actuator)
-        for _ in BOXES:
+        received = []
+        for expected in EXPECTED:
             pipeline.step()
             clock.advance(1.0)
-        data = b""
-        while select.select([master], [], [], 0.3)[0]:
-            data += os.read(master, 1024)
-        assert data == b"".join(b"%d\n" % s for s in EXPECTED)
+            received += wait_for_last_token(master, b"%d" % expected)
         actuator.close()
+        # Der Sender wiederholt den Status als Heartbeat, daher werden Wiederholungen zusammengefasst.
+        assert collapse(received) == [b"%d" % s for s in collapse(EXPECTED)]
     finally:
         os.close(master)
         os.close(slave)
@@ -156,3 +177,59 @@ def test_detection_example_saved_before_boxes_are_drawn(tmp_path, logger):
     pipeline.step()
     saved = cv2.imread(str(tmp_path / "images/detections" / os.listdir(tmp_path / "images/detections")[0]))
     assert not saved.any()  # keine gezeichneten Boxen im gespeicherten Bild
+
+
+# --- Warm-up und Hänger der Hauptschleife (fail-safe-shutdown, Aufgabe 4.1) ----------------
+
+class SystemClock:
+    def now(self):
+        return time.time()
+
+
+def test_warm_up_discards_one_frame_without_decision_or_actuator(tmp_path, logger):
+    actuator = FakeActuator()
+    pipeline, _ = make_pipeline(tmp_path, logger, [[CAR], [CAR]], actuator)
+    state_before = pipeline.state
+    pipeline.warm_up()
+    assert actuator.statuses == []
+    assert pipeline.state == state_before
+    assert pipeline.camera._index == 1 and pipeline.detector._index == 1
+
+
+class HangingDetector:
+    """Liefert beim zweiten Aufruf erst nach `hang` Sekunden ein Ergebnis."""
+
+    def __init__(self, hang):
+        self.hang = hang
+        self.calls = 0
+
+    def detect(self, image):
+        self.calls += 1
+        if self.calls == 2:
+            time.sleep(self.hang)
+        return []
+
+
+def test_hanging_main_loop_dims_within_700_ms(tmp_path, logger):
+    master, slave = pty.openpty()
+    link = ActuatorLink(port=os.ttyname(slave))
+    try:
+        pipeline = Pipeline(
+            FakeCamera([FRAME] * 5), HangingDetector(hang=1.0), link, SystemClock(),
+            Recorder(str(tmp_path), save_all=False, rng=NoRandom()), logger,
+            start_seconds=int(time.time()) - 10,  # Startsperre ist vorbei: Status 1
+        )
+        pipeline.step()  # Frame 1: Status 1
+        assert wait_for_last_token(master, b"1")[-1] == b"1"
+        hang_start = time.time()
+        worker = threading.Thread(target=pipeline.step, daemon=True)  # Frame 2 hängt 1 s
+        worker.start()
+        tokens = wait_for_last_token(master, b"0", timeout=1.2)
+        elapsed = time.time() - hang_start
+        assert tokens[-1] == b"0"
+        assert elapsed <= 0.7
+        worker.join()
+    finally:
+        link.close()
+        os.close(master)
+        os.close(slave)

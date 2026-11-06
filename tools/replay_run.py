@@ -20,7 +20,7 @@ import threading
 import time
 
 from hba import monitor
-from hba.actuator import SerialActuator
+from hba.actuator import ActuatorLink
 from hba.app import Options, Pipeline
 from hba.detect import YoloDetector
 from hba.recorder import Recorder, timestamp_name
@@ -62,7 +62,7 @@ def main() -> None:
     received, stop = bytearray(), threading.Event()
     threading.Thread(target=drain, args=(master, received, stop), daemon=True).start()
 
-    actuator = SerialActuator(port=os.ttyname(slave), logger=logger)
+    actuator = ActuatorLink(port=os.ttyname(slave), logger=logger)
     camera = FolderCamera(args.images, loop=True)
     clock = SystemClock()
     start_seconds = int(clock.now())
@@ -74,11 +74,13 @@ def main() -> None:
         logger, Options(conf=args.conf), start_seconds=start_seconds,
     )
 
+    pipeline.warm_up()
     end = time.time() + args.seconds
     frames = 0
     while time.time() < end:
         pipeline.step()
         frames += 1
+    actuator.close()
     monitor.log_end(logger)
     time.sleep(0.5)
     stop.set()

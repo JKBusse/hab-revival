@@ -26,6 +26,8 @@ Randbedingungen: Firmware-Timeout 1 bis 3 s (nicht änderbar), Protokoll `1\n` u
 
 Ein `ActuatorLink` besitzt die serielle Schnittstelle und sendet in einem Hintergrund-Thread alle 0,2 s. Die Hauptschleife ruft nur `set_status(0|1)` auf. Das merkt sich Status und Zeitstempel. Ist der Zeitstempel beim Senden älter als 0,5 s, sendet der Thread `0` statt des gemerkten Status.
 
+Zusätzlich weckt `set_status` den Sender sofort, damit das Abblenden nicht auf den Takt warten muss, und der Sender wacht zum Ablaufzeitpunkt der 0,5 s auf, sodass die `0` bei einem Hänger nach etwa 0,5 s kommt (gemessen 0,51 s) und nicht erst nach dem nächsten Takt.
+
 *Warum:* Ein Sender in der Hauptschleife kann eine hängende Hauptschleife nicht erkennen. Ein getrennter Thread macht aus „keine neue Entscheidung" aktiv ein `0`. PyTorch gibt die GIL bei CUDA-Aufrufen frei, deshalb läuft der Thread auch während der Inferenz.
 
 *Verworfen:* Weiter in der Hauptschleife senden und sich auf die Firmware verlassen. Das deckt den Hänger nur mit 1 bis 3 s Verzögerung ab. Ein einfacher Heartbeat-Thread, der den letzten Status wiederholt, ist die gefährlichste Variante: Er würde ein veraltetes `1` am Leben halten.

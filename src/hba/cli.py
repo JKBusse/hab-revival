@@ -36,7 +36,7 @@ def main(argv=None) -> None:
     import cv2
 
     from hba import monitor
-    from hba.actuator import SerialActuator
+    from hba.actuator import ActuatorLink
     from hba.app import Options, Pipeline
     from hba.capture import OpenCvCamera
     from hba.detect import YoloDetector
@@ -52,7 +52,8 @@ def main(argv=None) -> None:
     print("Start...")
     print("Arguments: ", str(args))
 
-    actuator = SerialActuator(logger=logger)
+    actuator = ActuatorLink(logger=logger)
+    lifecycle.actuator = actuator
     camera = OpenCvCamera(
         exposure=args.exposure, exposure_time=args.time, brightness=args.brightness, logger=logger
     )
@@ -76,5 +77,6 @@ def main(argv=None) -> None:
         show=(lambda image: cv2.imshow("Result", image)) if args.video else None,
         poll_key=(lambda: cv2.waitKey(1)) if args.video else None,
     )
+    pipeline.warm_up()  # erster Modellaufruf ist langsam, vor der Freigabe verwerfen
     pipeline.run()
     lifecycle.end()
