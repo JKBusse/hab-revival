@@ -45,9 +45,9 @@ Mit Vorschlägen (nachdem die Vorlabels von `hba1` da sind):
   tasks.json --root /Users/janbusse/Desktop/Projekte
 ```
 
-Das nimmt **alle** Bilder des Ordners. Für die Prüfung gehören nur die 456 ohne Label hinein:
-Das Skript wird dafür noch auf diese Auswahl eingeschränkt (siehe Aufgabe 3.3).
-In Label Studio: *Import* → `tasks.json`.
+Es entstehen nur Aufgaben für Bilder, zu denen ein Vorlabel existiert, also genau die 456 ohne
+Label (mit `--all-images` würden alle Bilder des Ordners aufgenommen). In Label Studio:
+*Import* → `tasks.json`.
 
 ## 3. Prüfen
 

@@ -47,14 +47,27 @@ def make_folder(tmp_path):
     return str(images), str(labels)
 
 
-def test_tasks_carry_predictions_only_where_a_prelabel_exists(tmp_path):
+def test_only_images_with_a_prelabel_become_tasks(tmp_path):
     images, labels = make_folder(tmp_path)
     tasks = y2l.build_tasks(images, labels, root=str(tmp_path))
-    assert [t["data"]["name"] for t in tasks] == ["a.png", "b.png", "c.png"]  # notiz.txt ist kein Bild
+    assert [t["data"]["name"] for t in tasks] == ["a.png", "b.png"]  # c.png hat kein Vorlabel, notiz.txt ist kein Bild
     assert len(tasks[0]["predictions"][0]["result"]) == 2
     assert tasks[1]["predictions"][0]["result"] == []  # Vorlabel leer: Modell sah kein Fahrzeug
-    assert "predictions" not in tasks[2]
     assert tasks[0]["data"]["image"] == "/data/local-files/?d=images/a.png"
+
+
+def test_all_images_can_be_requested_and_then_have_no_predictions_without_prelabel(tmp_path):
+    images, labels = make_folder(tmp_path)
+    tasks = y2l.build_tasks(images, labels, root=str(tmp_path), only_prelabeled=False)
+    assert [t["data"]["name"] for t in tasks] == ["a.png", "b.png", "c.png"]
+    assert "predictions" not in tasks[2]
+
+
+def test_without_a_prelabel_folder_every_image_is_a_task(tmp_path):
+    images, _ = make_folder(tmp_path)
+    tasks = y2l.build_tasks(images, None, root=str(tmp_path))
+    assert [t["data"]["name"] for t in tasks] == ["a.png", "b.png", "c.png"]
+    assert all("predictions" not in t for t in tasks)
 
 
 def test_full_round_trip_yolo_to_label_studio_to_yolo(tmp_path):
@@ -66,7 +79,7 @@ def test_full_round_trip_yolo_to_label_studio_to_yolo(tmp_path):
             task["annotations"] = [{"was_cancelled": False, "result": task["predictions"][0]["result"]}]
     out = tmp_path / "out"
     decisions = l2y.convert(tasks, str(out))
-    assert decisions == {"a": "geprüft", "b": "geprüft", "c": "offen"}
+    assert decisions == {"a": "geprüft", "b": "geprüft"}
     original = [l.split() for l in (tmp_path / "labels" / "a.txt").read_text().splitlines()]
     result = [l.split() for l in (out / "a.txt").read_text().splitlines()]
     assert len(original) == len(result) == 2
@@ -74,7 +87,6 @@ def test_full_round_trip_yolo_to_label_studio_to_yolo(tmp_path):
         assert o[0] == r[0]
         assert [float(v) for v in o[1:]] == pytest.approx([float(v) for v in r[1:]], abs=2e-6)
     assert (out / "b.txt").read_text() == ""  # bewusstes Negativ bleibt leer
-    assert not (out / "c.txt").exists()
 
 
 def test_skip_means_discarded_and_no_label_is_written(tmp_path):

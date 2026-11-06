@@ -54,16 +54,23 @@ def result_to_yolo_line(result: dict) -> str:
     return f"{cls} {xc:.6f} {yc:.6f} {w:.6f} {h:.6f}"
 
 
-def build_tasks(image_dir: str, label_dir: str | None, root: str, width: int = 640, height: int = 640) -> list[dict]:
+def build_tasks(
+    image_dir: str, label_dir: str | None, root: str, width: int = 640, height: int = 640, only_prelabeled: bool = True
+) -> list[dict]:
+    """Eine Aufgabe je Bild. Mit Vorlabelordner kommen nur Bilder mit Vorlabel hinein (die zu prüfenden),
+    sonst gehörten alle Bilder des Ordners dazu. `only_prelabeled=False` nimmt alle Bilder."""
     tasks = []
     for name in sorted(os.listdir(image_dir)):
         stem, ext = os.path.splitext(name)
         if ext.lower() not in IMAGE_EXTENSIONS:
             continue
         relative = os.path.relpath(os.path.join(image_dir, name), root)
-        task = {"data": {"image": f"/data/local-files/?d={relative}", "name": name}}
         label_path = os.path.join(label_dir, stem + ".txt") if label_dir else None
-        if label_path and os.path.isfile(label_path):
+        has_prelabel = bool(label_path and os.path.isfile(label_path))
+        if label_dir and only_prelabeled and not has_prelabel:
+            continue
+        task = {"data": {"image": f"/data/local-files/?d={relative}", "name": name}}
+        if has_prelabel:
             lines = [l for l in open(label_path, encoding="utf-8").read().splitlines() if l.strip()]
             task["predictions"] = [{
                 "model_version": MODEL_VERSION,
@@ -79,8 +86,9 @@ def main(argv=None) -> int:
     parser.add_argument("label_dir")
     parser.add_argument("output")
     parser.add_argument("--root", required=True, help="Dokumentenwurzel der lokalen Dateien von Label Studio")
+    parser.add_argument("--all-images", action="store_true", help="auch Bilder ohne Vorlabel aufnehmen")
     args = parser.parse_args(argv)
-    tasks = build_tasks(args.image_dir, args.label_dir, args.root)
+    tasks = build_tasks(args.image_dir, args.label_dir, args.root, only_prelabeled=not args.all_images)
     with open(args.output, "w", encoding="utf-8") as handle:
         json.dump(tasks, handle, ensure_ascii=False)
     print(f"{len(tasks)} Aufgaben, davon {sum('predictions' in t for t in tasks)} mit Vorschlägen: {args.output}")
