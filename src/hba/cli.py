@@ -75,6 +75,7 @@ def main(argv=None) -> None:
     lifecycle.install()
     monitor.log_start(logger, start_name, str(args))
     monitor.log_config(logger, loaded)
+    storage_ok = monitor.check_storage(cfg.recording.path, logger)
     print("Start...")
     print("Arguments: ", str(args))
     for warning in loaded.warnings:
@@ -102,12 +103,15 @@ def main(argv=None) -> None:
             exit_codes.EXIT_WATCHDOG, exit_codes.REASONS[exit_codes.EXIT_WATCHDOG]
         )
     )
+    recorder = Recorder.from_config(cfg.recording, save_all=cfg.output.save, rng=random.Random(), logger=logger)
+    if not storage_ok:
+        recorder.disable_all()  # Ablage fehlt: Erkennung läuft weiter, Aufnahmen entfallen
     pipeline = Pipeline(
         camera=camera,
         detector=detector,
         actuator=actuator,
         clock=SystemClock(),
-        recorder=Recorder.from_config(cfg.recording, save_all=cfg.output.save, rng=random.Random()),
+        recorder=recorder,
         logger=logger,
         options=Options.from_config(cfg),
         start_seconds=start_seconds,

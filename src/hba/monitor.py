@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from dataclasses import replace
 from typing import Sequence
 
@@ -26,11 +27,44 @@ WHITE = (255, 255, 255)
 MARGIN = 13  # Abstand der Box zur Detektion in Pixeln
 
 
-def setup_logger(log_dir: str, start_name: str) -> logging.Logger:
-    """Schreibt nach `<log_dir>/<start_name>.log` mit Stufe DEBUG.
+# Meldungen, die in jedem Frame entstehen: stehen in der Datei, nicht im Journal (sonst Flut).
+_FRAME_CHATTER = (
+    "-Frame START-", "Detections:", "cord0:", "Len:", "In active area", "No usefull detection",
+    "HBA Status:", "DIFF:",
+)
 
-    Der Ordner muss existieren (wie im Original). Mehrfacher Aufruf hängt keine
-    doppelten Handler an.
+
+class _JournalFilter(logging.Filter):
+    """Für stderr (Journal): Warnungen und Fehler immer, Infos nur ohne Frame-Takt."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.levelno >= logging.WARNING or not record.getMessage().startswith(_FRAME_CHATTER)
+
+
+class SafeFileHandler(logging.FileHandler):
+    """Datei-Log, das sich bei einem Schreibfehler (zum Beispiel Stick gezogen) einmal meldet und
+    abschaltet, statt bei jeder Meldung einen Traceback zu erzeugen. Das Programm läuft weiter."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.failed = False
+
+    def emit(self, record) -> None:
+        if not self.failed:
+            super().emit(record)
+
+    def handleError(self, record) -> None:
+        if not self.failed:
+            self.failed = True
+            sys.stderr.write("WARNUNG: Datei-Log abgeschaltet (Schreibfehler), Meldungen nur noch im Journal\n")
+
+
+def setup_logger(log_dir: str, start_name: str, stream=None) -> logging.Logger:
+    """Schreibt nach `<log_dir>/<start_name>.log` mit Stufe DEBUG und zusätzlich nach stderr (Journal).
+
+    Fehlt der Ordner oder ist er nicht beschreibbar, läuft das Programm trotzdem: ein WARNING nennt
+    den Pfad, und die Meldungen gehen nur nach stderr. Mehrfacher Aufruf hängt keine doppelten
+    Handler an.
     """
     logger = logging.getLogger(LOGGER_NAME)
     logger.setLevel(logging.DEBUG)
@@ -38,10 +72,35 @@ def setup_logger(log_dir: str, start_name: str) -> logging.Logger:
     for handler in list(logger.handlers):
         logger.removeHandler(handler)
         handler.close()
-    handler = logging.FileHandler(os.path.join(log_dir, start_name + ".log"))
-    handler.setFormatter(logging.Formatter(LOG_FORMAT))
-    logger.addHandler(handler)
+    formatter = logging.Formatter(LOG_FORMAT)
+
+    journal = logging.StreamHandler(stream if stream is not None else sys.stderr)
+    journal.setLevel(logging.INFO)
+    journal.addFilter(_JournalFilter())
+    journal.setFormatter(formatter)
+    logger.addHandler(journal)
+
+    path = os.path.join(log_dir, start_name + ".log")
+    try:
+        handler = SafeFileHandler(path)
+    except OSError as exc:
+        logger.warning("Ablage nicht verfügbar: Datei-Log aus (%s): %s", log_dir, exc)
+    else:
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
     return logger
+
+
+def file_logging_active(logger: logging.Logger) -> bool:
+    return any(isinstance(h, SafeFileHandler) and not h.failed for h in logger.handlers)
+
+
+def check_storage(path: str, logger: logging.Logger) -> bool:
+    """Prüft den Ablagepfad. Fehlt er, gibt es ein WARNING und die Aufnahmen bleiben aus."""
+    if os.path.isdir(path) and os.access(path, os.W_OK):
+        return True
+    logger.warning("Ablage nicht verfügbar: %s existiert nicht oder ist nicht beschreibbar, Aufnahmen aus", path)
+    return False
 
 
 def log_start(logger: logging.Logger, start_name: str, args_repr: str) -> None:

@@ -233,3 +233,24 @@ def test_hanging_main_loop_dims_within_700_ms(tmp_path, logger):
         link.close()
         os.close(master)
         os.close(slave)
+
+
+def test_detection_and_decision_continue_without_storage(tmp_path, logger):
+    """Stick fehlt: Aufnahmen entfallen, die Entscheidung läuft unverändert weiter."""
+    missing = str(tmp_path / "kein-stick")
+    actuator = FakeActuator()
+    camera = FakeCamera([FRAME] * len(BOXES))
+
+    class Always:
+        def random(self):
+            return 0.0  # würde jede Aufnahme auslösen
+
+    pipeline = Pipeline(
+        camera, FakeDetector(BOXES), actuator, FakeClock(T0),
+        Recorder(missing, save_all=True, rng=Always(), logger=logger), logger,
+    )
+    for _ in BOXES:
+        pipeline.step()
+        pipeline.clock.advance(1.0)
+    assert actuator.statuses == EXPECTED
+    assert pipeline.recorder.disabled == {"crop", "random", "detection"}

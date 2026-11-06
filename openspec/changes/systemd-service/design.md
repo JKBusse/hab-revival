@@ -62,7 +62,7 @@ Entscheidung von Jan: Der Dienst startet auch ohne `/mnt/hba-stick`. Das Program
 
 ### 4. Journal als Standard-Log
 
-systemd leitet stdout und stderr ins Journal. Das Programm muss dafür zusätzlich auf stderr loggen, zum Beispiel über einen `StreamHandler`. Das geschieht in der Pipeline, nicht in der Unit.
+systemd leitet stdout und stderr ins Journal. Das Programm loggt dafür zusätzlich auf stderr (`StreamHandler`). Das geschieht in der Pipeline, nicht in der Unit. Weil das Programm je Frame etwa zehn Zeilen schreibt (bei zehn Bildern pro Sekunde rund 100 Zeilen pro Sekunde), bekommt das Journal nur Warnungen, Fehler und die einmaligen Meldungen (Start, Konfiguration, Verbindung). Der Frame-Takt bleibt in der Datei. Sonst würde journald Meldungen unterdrücken. Fehlt die Ablage, gibt es nur das Journal, und der Frame-Takt entfällt dann (mit WARNING angekündigt).
 
 ### 5. Kein WatchdogSec
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=sensors
+
+[Service]
+ExecStart=/usr/bin/python3 /home/jkb/nvidia1.py
+Environment="PYTHONUNBUFFERED=1"
+User=jkb
+[Install]
+WantedBy=multi-user.target

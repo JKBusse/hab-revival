@@ -73,11 +73,6 @@ def test_setup_twice_does_not_duplicate_lines(tmp_path):
         h.close()
 
 
-def test_missing_log_folder_raises(tmp_path):
-    with pytest.raises(OSError):
-        monitor.setup_logger(str(tmp_path / "gibt-es-nicht"), "1")
-
-
 BLACK = np.zeros((640, 640, 3), dtype=np.uint8)
 
 
@@ -129,3 +124,81 @@ def test_stream_frame_written_with_timestamp_name(tmp_path):
     path = monitor.write_stream_frame(BLACK, 1698365548.2767072, str(tmp_path))
     assert path == str(tmp_path / "16983655482767072.png")
     assert cv2.imread(path).shape == (640, 640, 3)
+
+
+# --- systemd-service: Journal und fehlende Ablage --------------------------------------------------------
+
+import io
+
+from hba.monitor import SafeFileHandler, check_storage, file_logging_active
+
+
+def test_missing_log_folder_does_not_raise_and_warns_with_the_path(tmp_path):
+    stream = io.StringIO()
+    missing = str(tmp_path / "gibt-es-nicht")
+    lg = monitor.setup_logger(missing, "1", stream=stream)
+    try:
+        assert not file_logging_active(lg)
+        assert "Ablage nicht verfügbar" in stream.getvalue() and missing in stream.getvalue()
+        lg.info("läuft trotzdem")  # Meldungen gehen weiter nach stderr (Journal)
+        assert "läuft trotzdem" in stream.getvalue()
+    finally:
+        for h in list(lg.handlers):
+            lg.removeHandler(h)
+            h.close()
+
+
+def test_journal_gets_startup_messages_but_not_the_per_frame_chatter(tmp_path):
+    stream = io.StringIO()
+    lg = monitor.setup_logger(str(tmp_path), "123", stream=stream)
+    try:
+        monitor.log_start(lg, "123", "Namespace()")
+        monitor.log_frame_start(lg)
+        monitor.log_boxes(lg, [Box(100, 250, 180, 300, cls=1, conf=0.9)])
+        monitor.log_status(lg, 1)
+        monitor.log_frame_duration(lg, 0.1)
+        lg.warning("etwas ist faul")
+        journal = stream.getvalue()
+        assert "---START---" in journal and "Arguments:" in journal and "etwas ist faul" in journal
+        for chatter in ("-Frame START-", "Detections:", "HBA Status:", "DIFF:", "In active area"):
+            assert chatter not in journal
+        filetext = (tmp_path / "123.log").read_text()
+        for chatter in ("-Frame START-", "Detections:", "HBA Status:", "DIFF:"):
+            assert chatter in filetext  # die Datei behält alles
+    finally:
+        for h in list(lg.handlers):
+            lg.removeHandler(h)
+            h.close()
+
+
+def test_file_log_switches_itself_off_once_after_a_write_error(tmp_path, capsys):
+    lg = monitor.setup_logger(str(tmp_path), "1", stream=io.StringIO())
+    try:
+        handler = next(h for h in lg.handlers if isinstance(h, SafeFileHandler))
+
+        class Broken:
+            def write(self, data):
+                raise OSError("Stick gezogen")
+
+            def flush(self):
+                pass
+
+            def close(self):
+                pass
+
+        handler.stream = Broken()
+        lg.info("a")
+        lg.info("b")
+        lg.info("c")
+        assert handler.failed and not file_logging_active(lg)
+        assert capsys.readouterr().err.count("Datei-Log abgeschaltet") == 1  # nur einmal gemeldet
+    finally:
+        for h in list(lg.handlers):
+            lg.removeHandler(h)
+            h.close()
+
+
+def test_check_storage(tmp_path):
+    lg = logging.getLogger("HBA-test-storage")
+    assert check_storage(str(tmp_path), lg) is True
+    assert check_storage(str(tmp_path / "nicht-da"), lg) is False

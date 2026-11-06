@@ -1,0 +1,9 @@
+[Unit]
+Description=HBA
+
+[Service]
+ExecStart=/usr/bin/python3 /home/jkb/yolov8.py -d 0 
+Environment="PYTHONUNBUFFERED=1"
+User=jkb
+[Install]
+WantedBy=multi-user.target

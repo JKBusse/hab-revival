@@ -1,0 +1,22 @@
+[Unit]
+Description=HBA High Beam Assist
+# Endloser Neustart bei Fehlern: keine Sperre durch das systemd-Startlimit. Eine spaet erkannte GPU
+# oder ein nachgereichter Mikrocontroller fuehrt so ohne Eingriff zu einem laufenden Dienst.
+StartLimitIntervalSec=0
+# Absichtlich KEINE Abhaengigkeit von einem eingehaengten USB-Stick oder vom Netzwerk:
+# Fehlt die Ablage, laeuft die Erkennung weiter und das Programm warnt nur.
+
+[Service]
+User=jkb
+WorkingDirectory=/home/jkb/hba-revival
+# ./hba.yaml im Arbeitsverzeichnis wird gelesen, falls vorhanden (sonst gelten die Standardwerte).
+ExecStart=/home/jkb/hba-revival/.venv/bin/python -m hba
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=10
+# Gewollter Stopp: SIGTERM (das Programm sendet 0 und beendet mit Exit-Code 0), nach 5 s SIGKILL.
+KillSignal=SIGTERM
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target

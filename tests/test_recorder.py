@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 
@@ -141,10 +142,50 @@ def test_frame_without_boxes_does_not_draw_random_number(base):
     assert rng.calls == 0
 
 
-def test_missing_folder_raises(tmp_path):
-    rec = Recorder(str(tmp_path), save_all=True, rng=ScriptedRandom([NO]))
-    with pytest.raises(OSError):
-        rec.record_frame("a", CROP)
+def test_missing_folder_warns_and_the_recording_is_skipped(tmp_path, caplog):
+    logger = logging.getLogger("HBA-test-missing")
+    rec = Recorder(str(tmp_path), save_all=True, rng=ScriptedRandom([NO, NO]), logger=logger)
+    with caplog.at_level(logging.WARNING, logger=logger.name):
+        rec.record_frame("a", CROP)  # wirft nicht
+        rec.record_frame("b", CROP)
+    assert "crop" in rec.disabled
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    assert len(warnings) == 1 and "crop" in warnings[0].getMessage()  # nur einmal gemeldet
+
+
+def test_only_the_affected_recording_is_switched_off(base, caplog):
+    import shutil
+
+    shutil.rmtree(base / "images" / "detections")  # nur dieser Ordner fehlt
+    rng = ScriptedRandom([YES, YES])  # 1. Frame: Stichprobe; 2.: Detektionsbeispiel
+    rec = Recorder(str(base), save_all=False, rng=rng, logger=logging.getLogger("HBA-test-partial"))
+    rec.record_frame("a", CROP)
+    rec.record_detection("a", MODEL_INPUT, [FIRST])
+    assert rec.disabled == {"detection"}
+    assert files(base, "images/random") == ["a.png"]  # die Stichprobe funktioniert weiter
+
+
+def test_recording_stops_when_the_stick_disappears_during_operation(base):
+    import shutil
+
+    rec = Recorder(str(base), save_all=False, rng=ScriptedRandom([YES, YES, YES]), logger=logging.getLogger("HBA-test-pull"))
+    rec.record_frame("a", CROP)
+    assert files(base, "images/random") == ["a.png"]
+    shutil.rmtree(base / "images")  # Stick gezogen
+    rec.record_frame("b", CROP)  # darf nicht werfen
+    rec.record_frame("c", CROP)
+    assert rec.disabled == {"random"}
+
+
+def test_disable_all_writes_nothing_but_still_draws_random_numbers(base):
+    rng = ScriptedRandom([YES, YES])
+    rec = Recorder(str(base), save_all=True, rng=rng, logger=logging.getLogger("HBA-test-off"))
+    rec.disable_all()
+    rec.record_frame("a", CROP)
+    rec.record_detection("a", MODEL_INPUT, [FIRST])
+    assert files(base, "images/crop") == [] and files(base, "images/random") == []
+    assert files(base, "images/detections") == [] and files(base, "labels/detections") == []
+    assert rng.calls == 2  # der Zufallsstrom bleibt unverändert
 
 
 def test_fixed_seed_gives_reproducible_selection(base):

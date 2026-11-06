@@ -5,8 +5,9 @@ Verhalten wie im Legacy-Skript `legacy/yolov8.py` (Zeilen 79 bis 86, 158 bis 173
 
 * Zufallsbilder und Detektionsbeispiele werden auch ohne `-s` geschrieben.
 * Das Label enthält nur die ERSTE Box, das Detektionsbild zeigt keine Boxen.
-* Ordner werden nicht angelegt. Fehlt einer, wird eine Exception geworfen
-  (wird im Change `systemd-service` zu einer Warnung).
+* Ordner werden nicht angelegt. Fehlt einer oder schlägt ein Schreibvorgang fehl, gibt es ein
+  WARNING und die betroffene Aufnahme (`crop`, `random`, `detection`) entfällt für den Rest des
+  Laufs. Die Erkennung läuft weiter (Change `systemd-service`).
 
 Zeit und Zufall werden eingespeist (`name`, `rng` mit `random()`), damit Tests deterministisch sind.
 """
@@ -14,6 +15,7 @@ Zeit und Zufall werden eingespeist (`name`, `rng` mit `random()`), damit Tests d
 from __future__ import annotations
 
 import glob
+import logging
 import os
 import random
 from typing import Sequence
@@ -74,6 +76,7 @@ class Recorder:
         max_files_per_folder: int = MAX_FILES,
         sample_probability: float = SAMPLE_PROBABILITY,
         detection_probability: float = DETECTION_PROBABILITY,
+        logger: logging.Logger | None = None,
     ):
         self.base_path = base_path
         self.save_all = save_all
@@ -81,9 +84,27 @@ class Recorder:
         self.max_files_per_folder = max_files_per_folder
         self.sample_probability = sample_probability
         self.detection_probability = detection_probability
+        self.logger = logger if logger is not None else logging.getLogger("HBA")
+        self.disabled: set[str] = set()
+
+    def disable_all(self, reason: str = "") -> None:
+        """Schaltet alle Aufnahmen ab (Ablage nicht verfügbar). Der Aufrufer meldet den Grund."""
+        self.disabled.update({"crop", "random", "detection"})
+
+    def _guarded(self, category: str, action) -> None:
+        """Führt eine Aufnahme aus. Schreibfehler schalten nur diese Aufnahme ab, mit einem WARNING."""
+        if category in self.disabled:
+            return
+        try:
+            action()
+        except OSError as exc:
+            self.disabled.add(category)
+            self.logger.warning("Aufnahme '%s' abgeschaltet, Erkennung läuft weiter: %s", category, exc)
 
     @classmethod
-    def from_config(cls, recording: RecordingConfig, save_all: bool, rng: random.Random) -> "Recorder":
+    def from_config(
+        cls, recording: RecordingConfig, save_all: bool, rng: random.Random, logger: logging.Logger | None = None
+    ) -> "Recorder":
         return cls(
             recording.path,
             save_all,
@@ -91,27 +112,35 @@ class Recorder:
             max_files_per_folder=recording.max_files,
             sample_probability=recording.sample_probability,
             detection_probability=recording.detection_probability,
+            logger=logger,
         )
 
     def _path(self, *parts: str) -> str:
         return os.path.join(self.base_path, *parts)
 
     def record_frame(self, name: str, crop) -> None:
-        """Schritt vor der Erkennung: `-s` und die 1-%-Stichprobe (Ausschnitt 960x426)."""
+        """Schritt vor der Erkennung: `-s` und die Stichprobe (Ausschnitt 960x426)."""
         if self.save_all:
-            _write_image(self._path("images", "crop", name + ".png"), crop)
-        if self.rng.random() < self.sample_probability:
-            _write_image(self._path("images", "random", name + ".png"), crop)
-            max_files(self._path("images", "random"), self.max_files_per_folder)
+            self._guarded("crop", lambda: _write_image(self._path("images", "crop", name + ".png"), crop))
+        if self.rng.random() < self.sample_probability:  # Zufallszahl immer ziehen, auch bei abgeschalteter Aufnahme
+
+            def sample():
+                _write_image(self._path("images", "random", name + ".png"), crop)
+                max_files(self._path("images", "random"), self.max_files_per_folder)
+
+            self._guarded("random", sample)
 
     def record_detection(self, name: str, model_input, boxes: Sequence[Box]) -> None:
-        """Schritt nach der Erkennung: in etwa 9 % der Frames mit Boxen Bild und Label der ersten Box."""
+        """Schritt nach der Erkennung: in einem Teil der Frames mit Boxen Bild und Label der ersten Box."""
         if len(boxes) == 0:
             return
         if self.rng.random() < self.detection_probability:
-            _write_image(self._path("images", "detections", name + ".png"), model_input)
-            first = boxes[0]
-            with open(self._path("labels", "detections", name + ".txt"), "w") as handle:
-                handle.write(label_line(first.cls, first))
-            max_files(self._path("images", "detections"), self.max_files_per_folder)
-            max_files(self._path("labels", "detections"), self.max_files_per_folder)
+
+            def example():
+                _write_image(self._path("images", "detections", name + ".png"), model_input)
+                with open(self._path("labels", "detections", name + ".txt"), "w") as handle:
+                    handle.write(label_line(boxes[0].cls, boxes[0]))
+                max_files(self._path("images", "detections"), self.max_files_per_folder)
+                max_files(self._path("labels", "detections"), self.max_files_per_folder)
+
+            self._guarded("detection", example)
