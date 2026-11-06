@@ -296,12 +296,18 @@ def _flag_values(flags: dict[str, Any], errors: list[str]) -> dict[tuple[str, st
 
 
 def load_config(path: str | None, flags: dict[str, Any] | None = None) -> LoadedConfig:
+    return load_config_data(_read_yaml(path) if path is not None else None, flags, path)
+
+
+def load_config_data(
+    data: dict | None, flags: dict[str, Any] | None = None, path: str | None = None
+) -> LoadedConfig:
+    """Wie `load_config`, aber auf bereits gelesenen Werten (zum Beispiel vom Kalibrier-Werkzeug)."""
     errors: list[str] = []
     merged = copy.deepcopy(DEFAULTS)
     sources = {f"{section}.{key}": "Standard" for section, keys in DEFAULTS.items() for key in keys}
 
-    if path is not None:
-        data = _read_yaml(path)
+    if data is not None:
         for section, content in data.items():
             if section not in DEFAULTS:
                 errors.append(f"Unbekannter Abschnitt: {section}")

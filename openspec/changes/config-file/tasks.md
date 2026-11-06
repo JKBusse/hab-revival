@@ -17,14 +17,14 @@
 
 ## 3. Kalibrier-Werkzeug
 
-- [ ] 3.1 Rechteck-Geometrie, Koordinatenumrechnung (Anzeige zu Bild und zurück) und Prüfung in `calibration.py` schreiben und per Tabellentest verifizieren
-- [ ] 3.2 Schreiben in die YAML-Datei (atomar, nur geänderte Schlüssel, Kommentare bleiben) umsetzen und per Test verifizieren, dass ein Round-Trip eine Datei mit Kommentaren bis auf die geänderten Werte byte-identisch lässt
-- [ ] 3.3 OpenCV-Fenster in `calibrate.py` mit Maus, Tasten `s` und `q` und Einstiegspunkt `python -m hba.calibrate` (`--image`, `--camera`, `--config`) umsetzen und verifizieren, dass der Smoke-Test ohne Display die Argumente und die Fehlermeldung bei fehlendem Bild prüft
+- [x] 3.1 Rechteck-Geometrie, Koordinatenumrechnung (Anzeige zu Bild und zurück) und Prüfung in `calibration.py` schreiben und per Tabellentest verifizieren
+- [x] 3.2 Schreiben in die YAML-Datei (atomar, nur geänderte Schlüssel, Kommentare bleiben) umsetzen und per Test verifizieren, dass ein Round-Trip eine Datei mit Kommentaren bis auf die geänderten Werte byte-identisch lässt
+- [x] 3.3 OpenCV-Fenster in `calibrate.py` mit Maus, Tasten `s` und `q` und Einstiegspunkt `python -m hba.calibrate` (`--image`, `--camera`, `--config`) umsetzen und verifizieren, dass der Smoke-Test ohne Display die Argumente und die Fehlermeldung bei fehlendem Bild prüft
 - [ ] 3.4 (Jan) Handtest auf dem Mac mit einem Testbild: Ausschnitt verschieben, speichern, Datei prüfen, und verifizieren, dass die Anzeige der Standardwerte den 960×426-Ausschnitt zeigt
 
 ## 4. Dokumentation und Prüfung
 
-- [ ] 4.1 README um Konfiguration, Prüfmeldungen und Kalibrierung ergänzen und verifizieren, dass die Befehle wie beschrieben laufen
+- [x] 4.1 README um Konfiguration, Prüfmeldungen und Kalibrierung ergänzen und verifizieren, dass die Befehle wie beschrieben laufen
 - [ ] 4.2 Auf `hba1` unter Python 3.10 klonen, `pytest` ausführen und einen Kurzlauf mit Beispiel-Konfiguration fahren, und verifizieren, dass der Status gleich der Legacy-Folge für denselben Testlauf ist
 
 ## Workflow follow-up
