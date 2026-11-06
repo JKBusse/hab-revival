@@ -9,16 +9,23 @@ Taste prüfen, Frame-Dauer loggen.
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass
 from typing import Callable
 
 from hba import monitor
 from hba.capture import prepare_frame
 from hba.decision import decide, initial_state
+from hba.detect import GpuUnavailable, is_cuda_error
 from hba.ports import Actuator, Camera, Clock, Detector
 from hba.recorder import Recorder, timestamp_name
 
 KEY_STOP = ord("c")
+WARMUP_SECONDS = 30.0
+
+
+class WarmUpTimeout(GpuUnavailable):
+    """Der Warm-up-Frame wurde nicht rechtzeitig fertig (hängende GPU)."""
 
 
 @dataclass(frozen=True)
@@ -48,6 +55,7 @@ class Pipeline:
         start_seconds: int | None = None,
         show: Callable | None = None,
         poll_key: Callable[[], int] | None = None,
+        heartbeat: Callable[[], None] | None = None,
     ):
         self.camera = camera
         self.detector = detector
@@ -58,16 +66,40 @@ class Pipeline:
         self.options = options
         self.show = show
         self.poll_key = poll_key
+        self.heartbeat = heartbeat  # meldet der Watchdog jeden fertigen Frame
         # Legacy: lastDetectTimer wird vor dem Laden des Modells gesetzt.
         self.state = initial_state(int(clock.now()) if start_seconds is None else start_seconds)
         self._old_time = 0.0  # Legacy: oldTime = 0, daher ist die erste Frame-Dauer riesig
 
-    def warm_up(self) -> None:
+    def warm_up(self, timeout: float | None = None) -> None:
         """Verarbeitet einen Frame ohne Entscheidung und ohne Aktor-Zugriff.
 
         Der erste Aufruf des Modells dauert deutlich länger (CUDA-Initialisierung) und würde
         sonst die Staleness-Regel des Aktors auslösen. Der Frame wird verworfen.
+
+        Mit `timeout` läuft der Frame in einem eigenen Thread. Wird er nicht rechtzeitig
+        fertig, wird `WarmUpTimeout` geworfen (der Thread bleibt dann hängen).
         """
+        if timeout is None:
+            self._warm_up_once()
+            return
+        outcome: dict = {}
+
+        def work():
+            try:
+                self._warm_up_once()
+            except BaseException as exc:  # an den Aufrufer weiterreichen
+                outcome["error"] = exc
+
+        thread = threading.Thread(target=work, name="warm-up", daemon=True)
+        thread.start()
+        thread.join(timeout)
+        if thread.is_alive():
+            raise WarmUpTimeout(f"Warm-up-Frame nach {timeout:g} s nicht fertig")
+        if "error" in outcome:
+            raise outcome["error"]
+
+    def _warm_up_once(self) -> None:
         _, model_input = prepare_frame(self.camera.read())
         self.detector.detect(model_input)
 
@@ -107,10 +139,19 @@ class Pipeline:
         now = self.clock.now()
         monitor.log_frame_duration(self.logger, now - self._old_time)
         self._old_time = now
+        if self.heartbeat is not None:
+            self.heartbeat()
         return StepResult(status=status, stop=stop)
 
     def run(self) -> None:
         """Läuft bis zur Taste `c`. Fehler (zum Beispiel ausgefallene Kamera) laufen nach außen."""
         while True:
-            if self.step().stop:
+            try:
+                result = self.step()
+            except Exception as exc:
+                self.actuator.set_status(0)  # sofort abblenden, bevor das Programm endet
+                if is_cuda_error(exc):
+                    self.logger.error("CUDA-Fehler in der Inferenz: %s", exc)
+                raise
+            if result.stop:
                 return

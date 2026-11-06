@@ -12,7 +12,7 @@ def test_defaults_match_baseline():
     args = build_parser().parse_args([])
     assert args.video is False and args.stream is False and args.save is False
     assert args.conf == 0.4
-    assert args.device == "cpu"
+    assert args.device == "0"
     assert args.model == "/home/jkb/HBA4v2Dataset/HBAv5/medium6/weights/best.pt"
     assert args.exposure == "1"
     assert args.time == "700"

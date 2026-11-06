@@ -10,7 +10,7 @@ import time
 
 DEFAULT_MODEL = "/home/jkb/HBA4v2Dataset/HBAv5/medium6/weights/best.pt"
 DEFAULT_PATH = "/mnt/hba-stick/HBA/"
-DEFAULT_DEVICE = "cpu"  # Legacy-Standard, wird in `gpu-required` geändert
+DEFAULT_DEVICE = "0"  # erste GPU; `-d cpu` nur für Entwicklung
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -39,9 +39,12 @@ def main(argv=None) -> None:
     from hba.actuator import ActuatorLink
     from hba.app import Options, Pipeline
     from hba.capture import OpenCvCamera
-    from hba.detect import YoloDetector
+    from hba import exit_codes
+    from hba.detect import YoloDetector, is_gpu_device
     from hba.lifecycle import Lifecycle
     from hba.recorder import Recorder, timestamp_name
+    from hba.startup import create_detector_or_exit, warm_up_or_exit
+    from hba.watchdog import Watchdog
 
     start_name = timestamp_name(time.time())
 
@@ -58,13 +61,22 @@ def main(argv=None) -> None:
         exposure=args.exposure, exposure_time=args.time, brightness=args.brightness, logger=logger
     )
     start_seconds = int(time.time())  # Legacy: vor dem Laden des Modells
-    detector = YoloDetector(model_path=args.model, device=args.device, conf=args.conf)
+    detector = create_detector_or_exit(
+        lambda: YoloDetector(model_path=args.model, device=args.device, conf=args.conf, logger=logger),
+        lifecycle,
+        logger,
+    )
     logger.info("---initialisierung abgeschlossen--- \n")
 
     class SystemClock:
         def now(self) -> float:
             return time.time()
 
+    watchdog = Watchdog(
+        on_expire=lambda: lifecycle.hard_exit(
+            exit_codes.EXIT_WATCHDOG, exit_codes.REASONS[exit_codes.EXIT_WATCHDOG]
+        )
+    )
     pipeline = Pipeline(
         camera=camera,
         detector=detector,
@@ -76,7 +88,11 @@ def main(argv=None) -> None:
         start_seconds=start_seconds,
         show=(lambda image: cv2.imshow("Result", image)) if args.video else None,
         poll_key=(lambda: cv2.waitKey(1)) if args.video else None,
+        heartbeat=watchdog.beat,
     )
-    pipeline.warm_up()  # erster Modellaufruf ist langsam, vor der Freigabe verwerfen
+    # Erster Modellaufruf ist langsam: vor der Freigabe verwerfen. Auf der GPU gilt ein
+    # Fehlschlag oder Hänger als "keine nutzbare GPU" (Exit-Code 3).
+    warm_up_or_exit(pipeline, lifecycle, logger, gpu=is_gpu_device(args.device))
+    watchdog.start()
     pipeline.run()
     lifecycle.end()

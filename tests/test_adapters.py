@@ -122,6 +122,7 @@ def make_detector(boxes, **kwargs):
         calls.append(kw)
         return iter([FakeResult(boxes)])
 
+    kwargs.setdefault("cuda_available", lambda: True)
     detector = YoloDetector(model_path="x.pt", loader=lambda path: model, **kwargs)
     return detector, calls
 
@@ -144,9 +145,9 @@ def test_detector_passes_device_confidence_and_stream():
     assert calls == [{"device": "0", "conf": 0.55, "stream": True}]
 
 
-def test_detector_defaults_match_baseline():
+def test_detector_defaults_are_gpu_and_baseline_confidence():
     detector, _ = make_detector(FakeBoxes([], [], []))
-    assert detector.device == "cpu" and detector.conf == 0.4
+    assert detector.device == "0" and detector.conf == 0.4
 
 
 def test_importing_modules_does_not_load_torch_or_ultralytics():
@@ -156,3 +157,30 @@ def test_importing_modules_does_not_load_torch_or_ultralytics():
     )
     out = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True, check=True)
     assert out.stdout.strip() == ""
+
+
+# --- gpu-required: Standardgerät und CPU-Warnung ------------------------------------------
+
+def test_default_device_is_the_first_gpu():
+    from hba.detect import DEFAULT_DEVICE
+    assert DEFAULT_DEVICE == "0"
+
+
+def test_cpu_must_be_requested_explicitly_and_warns(caplog):
+    logger = logging.getLogger("HBA-test-cpu")
+    with caplog.at_level(logging.WARNING, logger=logger.name):
+        detector, _ = make_detector(FakeBoxes([], [], []), device="cpu", logger=logger)
+    assert detector.device == "cpu"
+    assert any("nur für Entwicklung" in r.getMessage() for r in caplog.records)
+
+
+def test_cpu_does_not_need_cuda(caplog):
+    detector, _ = make_detector(FakeBoxes([], [], []), device="cpu", cuda_available=lambda: False)
+    assert detector.device == "cpu"
+
+
+@pytest.mark.parametrize("device", ["0", "cuda", "cuda:0"])
+def test_gpu_device_without_cuda_raises(device):
+    from hba.detect import GpuUnavailable
+    with pytest.raises(GpuUnavailable):
+        make_detector(FakeBoxes([], [], []), device=device, cuda_available=lambda: False)

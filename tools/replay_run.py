@@ -74,7 +74,9 @@ def main() -> None:
         logger, Options(conf=args.conf), start_seconds=start_seconds,
     )
 
-    pipeline.warm_up()
+    t_warm = time.time()
+    pipeline.warm_up(timeout=30)
+    print("warm_up_s: %.2f" % (time.time() - t_warm))
     end = time.time() + args.seconds
     frames = 0
     while time.time() < end:

@@ -13,12 +13,14 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 import signal
 import sys
 import threading
+import time
 from typing import Callable
 
-from hba import monitor
+from hba import exit_codes, monitor
 from hba.ports import Actuator
 
 
@@ -28,10 +30,14 @@ class Lifecycle:
         logger: logging.Logger,
         actuator: Actuator | None = None,
         close_windows: Callable[[], None] | None = None,
+        hard_exit_fn: Callable[[int], None] = os._exit,
+        sleep: Callable[[float], None] = time.sleep,
     ):
         self.logger = logger
         self.actuator = actuator
         self._close_windows = close_windows if close_windows is not None else _destroy_windows
+        self._hard_exit_fn = hard_exit_fn
+        self._sleep = sleep
         self._shutdown_lock = threading.Lock()
         self._shut_down = False
 
@@ -53,25 +59,47 @@ class Lifecycle:
             except Exception:
                 self.logger.exception("Abschlusskommando fehlgeschlagen")
 
-    def end(self, code: int = 0) -> None:
+    def end(self, code: int = exit_codes.EXIT_OK) -> None:
         print("---END---")
         self.shutdown()
         self._close_windows()
         monitor.log_end(self.logger)
         sys.exit(code)
 
+    def hard_exit(self, code: int, reason: str) -> None:
+        """Beendet sofort, ohne auf hängende Threads zu warten (Watchdog, hängender Warm-up).
+
+        Setzt zuerst `0` (der Sender schickt es sofort, ohne zu blockieren), wartet kurz,
+        schreibt das Log fertig und beendet dann mit `os._exit`.
+        """
+        self.logger.error("%s (Exit-Code %d)", reason, code)
+        print("---END---")
+        if self.actuator is not None:
+            try:
+                self.actuator.set_status(0)
+            except Exception:
+                pass
+            self._sleep(0.15)
+        monitor.log_end(self.logger)
+        for handler in self.logger.handlers:
+            try:
+                handler.flush()
+            except Exception:
+                pass
+        self._hard_exit_fn(code)
+
     def _on_unhandled_exception(self, exc_type, exc_value, exc_traceback) -> None:
         print("Unhandled exception:", exc_type, exc_value)
         self.logger.error("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
-        self.end(1)
+        self.end(exit_codes.EXIT_ERROR)
 
     def _on_sigint(self, signum, frame) -> None:
         self.logger.info("Manual end CTR-C")
-        self.end(0)
+        self.end(exit_codes.EXIT_OK)
 
     def _on_sigterm(self, signum, frame) -> None:
         self.logger.info("Manual end SIGTERM")
-        self.end(0)
+        self.end(exit_codes.EXIT_OK)
 
 
 def _destroy_windows() -> None:
