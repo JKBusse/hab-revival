@@ -1,0 +1,8 @@
+<View>
+  <Header value="Rahmen um jedes Fahrzeug. Absenden = geprüft (auch ohne Rahmen = kein Fahrzeug). Skip = verwerfen."/>
+  <Image name="image" value="$image"/>
+  <RectangleLabels name="label" toName="image">
+    <Label value="back" background="red"/>
+    <Label value="front" background="green"/>
+  </RectangleLabels>
+</View>

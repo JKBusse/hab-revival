@@ -4,7 +4,7 @@
 
 - [x] 1.1 Unveränderte Sicherungskopie von `HBA4v2Dataset` anlegen und verifizieren, dass Dateianzahl und Prüfsummen mit dem Original übereinstimmen
 - [x] 1.2 `tools/check_dataset.py` mit allen Regeln aus der Spec `training-data` (Label für jedes Bild, leer nur bei `OFF`, Verwaiste, Klassen, Wertebereiche) schreiben und per Tabellentest mit kleinen Beispiel-Datensätzen verifizieren, dass jedes Szenario erkannt wird
-- [ ] 1.3 Routine auf dem echten Datensatz laufen lassen und verifizieren, dass sie genau die bekannten Mängel meldet (456 ohne Label, 4 verwaiste Labels, Schreibweise)
+- [x] 1.3 Routine auf dem echten Datensatz laufen lassen und verifizieren, dass sie die bekannten Mängel meldet (456 Bilder ohne Label, 4 verwaiste Labels). Befund 2026-11-06: Die Klassenschreibweise in `HBA4v2Dataset` war bereits richtig, dazu kamen 8 leere Labels ohne Präfix `OFF` (siehe 2.1)
 - [x] 1.4 Prüfsummen von `valid` und `test` festhalten (`--checksums`) und verifizieren, dass ein erneuter Lauf dieselben Werte liefert
 
 ## 2. Einfache Bereinigung
@@ -14,7 +14,7 @@
 ## 3. Vorlabeln und Prüfen
 
 - [ ] 3.1 Skript für Vorlabels (`medium6`, Schwelle 0,25, Ausgabe nach `prelabel/`) schreiben und auf `hba1` verifizieren, dass für alle 456 Bilder je eine Label-Datei (ggf. leer) entsteht
-- [ ] 3.2 `yolo_to_ls.py` und `ls_to_yolo.py` schreiben und per Rundreise-Test verifizieren, dass YOLO → Label Studio → YOLO dieselben Zeilen bis auf Rundung ergibt
+- [x] 3.2 `yolo_to_ls.py` und `ls_to_yolo.py` schreiben und per Rundreise-Test verifizieren, dass YOLO → Label Studio → YOLO dieselben Zeilen bis auf Rundung ergibt
 - [ ] 3.3 (Jan) Label Studio in eigener venv (Python 3.11 oder 3.12) einrichten, Bilder und Vorlabels importieren und verifizieren, dass ein Bild mit Rahmen angezeigt wird
 - [ ] 3.4 (Jan) Alle 456 Bilder prüfen und je als `geprüft` oder `verworfen` entscheiden und verifizieren, dass kein Bild ohne Entscheidung bleibt
 - [ ] 3.5 Ergebnis exportieren, geprüfte Bilder nach `train/` übernehmen, verworfene entfernen, Protokoll ergänzen, und verifizieren, dass die Prüfroutine fehlerfrei durchläuft und `valid`/`test` dieselben Prüfsummen haben
