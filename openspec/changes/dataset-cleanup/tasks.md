@@ -2,14 +2,14 @@
 
 ## 1. Prüfroutine und Ist-Zustand
 
-- [ ] 1.1 Unveränderte Sicherungskopie von `HBA4v2Dataset` anlegen und verifizieren, dass Dateianzahl und Prüfsummen mit dem Original übereinstimmen
-- [ ] 1.2 `tools/check_dataset.py` mit allen Regeln aus der Spec `training-data` (Label für jedes Bild, leer nur bei `OFF`, Verwaiste, Klassen, Wertebereiche) schreiben und per Tabellentest mit kleinen Beispiel-Datensätzen verifizieren, dass jedes Szenario erkannt wird
+- [x] 1.1 Unveränderte Sicherungskopie von `HBA4v2Dataset` anlegen und verifizieren, dass Dateianzahl und Prüfsummen mit dem Original übereinstimmen
+- [x] 1.2 `tools/check_dataset.py` mit allen Regeln aus der Spec `training-data` (Label für jedes Bild, leer nur bei `OFF`, Verwaiste, Klassen, Wertebereiche) schreiben und per Tabellentest mit kleinen Beispiel-Datensätzen verifizieren, dass jedes Szenario erkannt wird
 - [ ] 1.3 Routine auf dem echten Datensatz laufen lassen und verifizieren, dass sie genau die bekannten Mängel meldet (456 ohne Label, 4 verwaiste Labels, Schreibweise)
-- [ ] 1.4 Prüfsummen von `valid` und `test` festhalten (`--checksums`) und verifizieren, dass ein erneuter Lauf dieselben Werte liefert
+- [x] 1.4 Prüfsummen von `valid` und `test` festhalten (`--checksums`) und verifizieren, dass ein erneuter Lauf dieselben Werte liefert
 
 ## 2. Einfache Bereinigung
 
-- [ ] 2.1 Die 4 verwaisten Labels entfernen und Klassenschreibweise vereinheitlichen, jede Änderung in `DATASET_CHANGES.md` festhalten, und verifizieren, dass die Prüfroutine nur noch die 456 Bilder meldet
+- [x] 2.1 Die 4 verwaisten Labels entfernen und Klassenschreibweise vereinheitlichen, jede Änderung in `DATASET_CHANGES.md` festhalten, und verifizieren, dass die Prüfroutine nur noch die 456 Bilder meldet
 
 ## 3. Vorlabeln und Prüfen
 
