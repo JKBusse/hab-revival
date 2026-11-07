@@ -14,10 +14,10 @@
 
 ## 3. Einrichtung auf `hba1` (nur nach Freigabe durch Jan)
 
-- [ ] 3.1 (Jan) Freigabe für die Systemänderung geben, danach alte Unit sichern, neue einspielen, `systemctl daemon-reload` und `restart`, und verifizieren, dass `systemctl status hba` und `journalctl -u hba` den Stand zeigen
-- [ ] 3.2 Ohne Stick und ohne Kamera starten und verifizieren, dass der Dienst kontrolliert scheitert, nach 10 s neu startet und nicht aufgibt
+- [x] 3.1 (Jan) Freigabe für die Systemänderung geben, danach alte Unit sichern, neue einspielen, `systemctl daemon-reload` und `restart`, und verifizieren, dass `systemctl status hba` und `journalctl -u hba` den Stand zeigen
+- [x] 3.2 Ohne Stick und ohne Kamera starten und verifizieren, dass der Dienst kontrolliert scheitert, nach 10 s neu startet und nicht aufgibt
 - [ ] 3.3 `kill -TERM` und `kill -KILL` auf den laufenden Prozess ausführen und verifizieren, dass TERM ohne Neustart endet und KILL nach 10 s einen Neustart auslöst
-- [ ] 3.4 Reboot-Test: `hba1` neu starten und verifizieren, dass der Dienst von selbst anläuft
+- [x] 3.4 Reboot-Test: `hba1` neu starten und verifizieren, dass der Dienst von selbst anläuft
 
 ## Workflow follow-up
 
