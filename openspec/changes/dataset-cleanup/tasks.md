@@ -22,8 +22,8 @@
 
 ## 4. GPU-Freigabe
 
-- [ ] 4.1 (Jan) Zustimmung für `nvidia-smi -pl 65` (sudo) auf `hba1` geben
-- [ ] 4.2 30 Minuten echte Inferenz mit `medium6` bei 65 W laufen lassen und verifizieren, dass im Kernel-Log kein Xid-Fehler steht und Leistung, Temperatur und Takt aufgezeichnet sind
+- [x] 4.1 (Jan) Zustimmung für `nvidia-smi -pl 65` (sudo) auf `hba1` geben
+- [x] 4.2 30 Minuten echte Inferenz mit `medium6` bei 65 W laufen lassen und verifizieren, dass im Kernel-Log kein Xid-Fehler steht und Leistung, Temperatur und Takt aufgezeichnet sind
 - [ ] 4.3 Eine Probeepoche trainieren und verifizieren, dass der Lauf ohne GPU-Abriss endet und die Dauer pro Epoche notiert ist
 
 ## 5. Training und Abnahme
