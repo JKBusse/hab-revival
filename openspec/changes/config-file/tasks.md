@@ -25,7 +25,7 @@
 ## 4. Dokumentation und Prüfung
 
 - [x] 4.1 README um Konfiguration, Prüfmeldungen und Kalibrierung ergänzen und verifizieren, dass die Befehle wie beschrieben laufen
-- [ ] 4.2 Auf `hba1` unter Python 3.10 klonen, `pytest` ausführen und einen Kurzlauf mit Beispiel-Konfiguration fahren, und verifizieren, dass der Status gleich der Legacy-Folge für denselben Testlauf ist
+- [x] 4.2 Auf `hba1` unter Python 3.10 klonen, `pytest` ausführen und einen Kurzlauf mit Beispiel-Konfiguration fahren, und verifizieren, dass der Status gleich der Legacy-Folge für denselben Testlauf ist
 
 ## Workflow follow-up
 

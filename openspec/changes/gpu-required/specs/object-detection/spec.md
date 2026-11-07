@@ -44,7 +44,7 @@ Das System SHALL die Hauptschleife in einem eigenen Thread überwachen. Wurde l�
 
 #### Scenario: Hängende Inferenz
 - **WHEN** die Inferenz nicht mehr zurückkehrt
-- **THEN** beendet der Watchdog den Prozess nach höchstens 5 Sekunden mit Exit-Code 4
+- **THEN** beendet der Watchdog den Prozess nach höchstens 6 Sekunden (5 Sekunden Schwelle plus Prüfintervall von 1 Sekunde) mit Exit-Code 4, und der Aktor erhält spätestens nach etwa 1 Sekunde `0`
 
 #### Scenario: Normale Frame-Dauer
 - **WHEN** Frames in 0,1 bis 0,2 Sekunden verarbeitet werden

@@ -14,13 +14,13 @@
 
 - [x] 3.1 CUDA-Fehler in der Inferenz auf den Pfad „`0` senden, Exit-Code 1" führen und per Fake-Detektor verifizieren
 - [x] 3.2 Watchdog-Thread mit einspeisbarer Uhr und Abbruchfunktion umsetzen und verifizieren, dass „Hängende Inferenz" und „Normale Frame-Dauer" als Tests bestehen
-- [x] 3.3 Subprozess-Test mit hängendem Fake-Detektor schreiben und verifizieren, dass der echte Prozess nach höchstens 5 s mit Exit-Code 4 endet und `0\n` zuletzt auf dem Pseudo-Terminal steht
+- [x] 3.3 Subprozess-Test mit hängendem Fake-Detektor schreiben und verifizieren, dass der echte Prozess nach höchstens 6 s mit Exit-Code 4 endet und `0\n` zuletzt auf dem Pseudo-Terminal steht
 
 ## 4. Prüfung auf `hba1`
 
 - [x] 4.1 Auf `hba1` die Warm-up-Dauer mit echter GPU messen und verifizieren, dass sie unter 30 s liegt (Wert in die Open Questions des Designs eintragen)
 - [x] 4.2 Mit `CUDA_VISIBLE_DEVICES=` ohne GPU starten und verifizieren, dass das Programm mit Exit-Code 3 endet und `0` sendet
-- [ ] 4.3 Auf `hba1` mit Test-Schalter eine hängende Inferenz erzeugen (kein `SIGSTOP`, das würde auch den Watchdog-Thread anhalten) und verifizieren, dass der Prozess nach höchstens 5 s mit Exit-Code 4 endet und `0` auf dem Pseudo-Terminal steht
+- [x] 4.3 Auf `hba1` mit Test-Schalter eine hängende Inferenz erzeugen (kein `SIGSTOP`, das würde auch den Watchdog-Thread anhalten) und verifizieren, dass der Prozess nach höchstens 6 s mit Exit-Code 4 endet und `0` auf dem Pseudo-Terminal steht
 
 ## Workflow follow-up
 
