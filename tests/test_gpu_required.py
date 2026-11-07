@@ -101,6 +101,25 @@ def test_warm_up_failure_on_gpu_counts_as_no_gpu(tmp_path):
     assert lifecycle.calls == [("end", exit_codes.EXIT_NO_GPU)]
 
 
+def test_camera_failure_in_warm_up_is_not_a_gpu_problem(tmp_path):
+    class NoImage:
+        def read(self):
+            raise RuntimeError("camera.read() lieferte kein Bild")
+
+        def release(self):
+            pass
+
+    class Never:
+        def detect(self, image):
+            raise AssertionError("darf ohne Bild nicht aufgerufen werden")
+
+    pipeline = make_pipeline(tmp_path, Never())
+    pipeline.camera = NoImage()
+    lifecycle = RecordingLifecycle()
+    warm_up_or_exit(pipeline, lifecycle, LOGGER, gpu=True, timeout=5)
+    assert lifecycle.calls == [("end", exit_codes.EXIT_ERROR)]
+
+
 def test_warm_up_failure_on_cpu_propagates(tmp_path):
     class Failing:
         def detect(self, image):

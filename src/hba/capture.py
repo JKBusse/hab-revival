@@ -44,6 +44,10 @@ CAMERA_WIDTH = DEFAULTS["camera"]["width"]
 CAMERA_HEIGHT = DEFAULTS["camera"]["height"]
 
 
+class CameraError(RuntimeError):
+    """Die Kamera liefert kein Bild (kein GPU-Problem)."""
+
+
 class OpenCvCamera:
     """Kamera-Adapter wie `initialize_camera` im Original (Zeilen 106 bis 136).
 
@@ -111,7 +115,7 @@ class OpenCvCamera:
     def read(self):
         ok, frame = self._capture.read()
         if not ok or frame is None:
-            raise RuntimeError("camera.read() lieferte kein Bild")
+            raise CameraError("camera.read() lieferte kein Bild")
         return frame
 
     def release(self) -> None:

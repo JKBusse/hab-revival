@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from hba import monitor
-from hba.capture import prepare_frame
+from hba.capture import CameraError, prepare_frame
 from hba.config import Config
 from hba.decision import decide, initial_state
 from hba.detect import GpuUnavailable, is_cuda_error
@@ -112,7 +112,13 @@ class Pipeline:
             raise outcome["error"]
 
     def _warm_up_once(self) -> None:
-        _, model_input = prepare_frame(self.camera.read(), self.options.config)
+        try:
+            frame = self.camera.read()
+        except CameraError:
+            raise
+        except Exception as exc:
+            raise CameraError(f"Kamera nicht lesbar: {exc}") from exc
+        _, model_input = prepare_frame(frame, self.options.config)
         self.detector.detect(model_input)
 
     def step(self) -> StepResult:

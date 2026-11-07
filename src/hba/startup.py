@@ -2,7 +2,8 @@
 
 Ablauf: CUDA verfügbar (beim Erzeugen des Detektors), Modell geladen, Warm-up-Frame innerhalb
 von 30 Sekunden. Scheitert ein Schritt, wird ein ERROR geloggt, `0` gesendet und mit
-Exit-Code 3 beendet. Einen CPU-Fallback gibt es nicht.
+Exit-Code 3 beendet. Eine Kamera, die beim Warm-up kein Bild liefert, ist kein GPU-Problem
+(Exit-Code 1). Einen CPU-Fallback gibt es nicht.
 """
 
 from __future__ import annotations
@@ -12,6 +13,7 @@ from typing import Callable
 
 from hba import exit_codes
 from hba.app import WARMUP_SECONDS, Pipeline, WarmUpTimeout
+from hba.capture import CameraError
 from hba.detect import GpuUnavailable
 from hba.lifecycle import Lifecycle
 
@@ -38,6 +40,10 @@ def warm_up_or_exit(
     except WarmUpTimeout as exc:
         # Der Thread hängt in einem CUDA-Aufruf: nicht darauf warten.
         lifecycle.hard_exit(exit_codes.EXIT_NO_GPU, f"Keine nutzbare GPU: {exc}")
+    except CameraError as exc:
+        # Kein GPU-Problem: eigene Meldung, Laufzeitfehler (Exit-Code 1), der Dienst-Manager startet neu.
+        logger.error("Kamera beim Warm-up nicht lesbar: %s", exc)
+        lifecycle.end(exit_codes.EXIT_ERROR)
     except GpuUnavailable as exc:
         logger.error("Keine nutzbare GPU: %s", exc)
         lifecycle.end(exit_codes.EXIT_NO_GPU)

@@ -27,6 +27,12 @@ Das System SHALL beim Start mit einer GPU als Gerät prüfen, dass CUDA verfügb
 - **WHEN** der Warm-up-Frame nach 30 Sekunden nicht fertig ist
 - **THEN** endet der Prozess mit Exit-Code 3
 
+#### Scenario: Kamera liefert beim Warm-up kein Bild
+- **WHEN** die Kamera beim Warm-up kein Bild liefert
+- **THEN** wird ein ERROR geloggt, der die Kamera als Ursache nennt (nicht die GPU)
+- **AND** `0\n` wird an den Aktor gesendet
+- **AND** der Prozess endet mit Exit-Code 1
+
 #### Scenario: GPU in Ordnung
 - **WHEN** CUDA verfügbar ist und der Warm-up gelingt
 - **THEN** beginnt die Hauptschleife
