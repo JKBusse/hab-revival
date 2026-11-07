@@ -34,6 +34,10 @@ export LOCAL_FILES_DOCUMENT_ROOT=/Users/janbusse/Desktop/Projekte
 Im Browser (`http://localhost:8080`) ein Konto anlegen und ein Projekt erstellen. Unter
 *Settings → Labeling Interface → Code* den Inhalt von `tools/label_studio_config.xml` einfügen.
 
+Hinweis (Label Studio 1.23): Damit die Bilder angezeigt werden, braucht das Projekt unter
+*Settings → Cloud Storage* eine **Local Files**-Ablage mit dem Pfad `/Users/janbusse/Desktop/Projekte/HBA4v2Dataset`
+(nur anlegen, **nicht** synchronisieren). Die Anmeldung per API-Token ist in dieser Version abgeschaltet.
+
 ## 2. Aufgaben erzeugen und importieren
 
 Mit Vorschlägen (nachdem die Vorlabels von `hba1` da sind):
