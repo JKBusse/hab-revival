@@ -18,8 +18,8 @@
 
 ## 4. Prüfung auf `hba1`
 
-- [ ] 4.1 Auf `hba1` die Warm-up-Dauer mit echter GPU messen und verifizieren, dass sie unter 30 s liegt (Wert in die Open Questions des Designs eintragen)
-- [ ] 4.2 Mit `CUDA_VISIBLE_DEVICES=` ohne GPU starten und verifizieren, dass das Programm mit Exit-Code 3 endet und `0` sendet
+- [x] 4.1 Auf `hba1` die Warm-up-Dauer mit echter GPU messen und verifizieren, dass sie unter 30 s liegt (Wert in die Open Questions des Designs eintragen)
+- [x] 4.2 Mit `CUDA_VISIBLE_DEVICES=` ohne GPU starten und verifizieren, dass das Programm mit Exit-Code 3 endet und `0` sendet
 - [ ] 4.3 Auf `hba1` mit Test-Schalter eine hängende Inferenz erzeugen (kein `SIGSTOP`, das würde auch den Watchdog-Thread anhalten) und verifizieren, dass der Prozess nach höchstens 5 s mit Exit-Code 4 endet und `0` auf dem Pseudo-Terminal steht
 
 ## Workflow follow-up

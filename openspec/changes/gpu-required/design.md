@@ -66,4 +66,4 @@ Rollback: `-d cpu` stellt das bisherige Verhalten her.
 
 ## Open Questions
 
-- Gemessene Warm-up-Dauer auf `hba1` (bestimmt, ob 30 s passend sind).
+- Gemessene Warm-up-Dauer auf `hba1` (2026-11-07, P106-100, drei Läufe mit frischem Prozess): 6,6 s, 3,9 s, 3,5 s. Die Grenze von 30 s hat reichlich Abstand und bleibt.
