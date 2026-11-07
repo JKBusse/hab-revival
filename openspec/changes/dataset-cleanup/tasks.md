@@ -13,7 +13,7 @@
 
 ## 3. Vorlabeln und Prüfen
 
-- [ ] 3.1 Skript für Vorlabels (`medium6`, Schwelle 0,25, Ausgabe nach `prelabel/`) schreiben und auf `hba1` verifizieren, dass für alle 456 Bilder je eine Label-Datei (ggf. leer) entsteht
+- [x] 3.1 Skript für Vorlabels (`medium6`, Schwelle 0,25, Ausgabe nach `prelabel/`) schreiben und auf `hba1` verifizieren, dass für alle 456 Bilder je eine Label-Datei (ggf. leer) entsteht
 - [x] 3.2 `yolo_to_ls.py` und `ls_to_yolo.py` schreiben und per Rundreise-Test verifizieren, dass YOLO → Label Studio → YOLO dieselben Zeilen bis auf Rundung ergibt
 - [ ] 3.3 (Jan) Label Studio in eigener venv (Python 3.11 oder 3.12) einrichten, Bilder und Vorlabels importieren und verifizieren, dass ein Bild mit Rahmen angezeigt wird
 - [ ] 3.4 (Jan) Alle 456 Bilder prüfen und je als `geprüft` oder `verworfen` entscheiden und verifizieren, dass kein Bild ohne Entscheidung bleibt
