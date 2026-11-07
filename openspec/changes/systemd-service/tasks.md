@@ -2,10 +2,10 @@
 
 ## 1. Unit und Dokumentation im Repo
 
-- [ ] 1.1 `deploy/hba.service` nach Design schreiben und per `systemd-analyze verify` verifizieren, dass keine Fehler gemeldet werden (auf `hba1`, falls der Mac es nicht kann)
+- [x] 1.1 `deploy/hba.service` nach Design schreiben und per `systemd-analyze verify` verifizieren, dass keine Fehler gemeldet werden (auf `hba1`, falls der Mac es nicht kann)
 - [x] 1.2 Test schreiben, der in `deploy/hba.service` die Zeilen `Restart=on-failure`, `RestartSec=10`, `StartLimitIntervalSec=0`, `TimeoutStopSec=5`, `User=jkb` und das Fehlen einer `RequiresMountsFor`-Zeile prüft, und verifizieren, dass er besteht
-- [ ] 1.3 `deploy/README.md` mit Installation, Rückfall, Journal-Abfrage, Hinweis auf doppelten Start und der Beschreibung von `sensor.service` schreiben und verifizieren, dass die Befehle zum Ist-Zustand auf `hba1` passen
-- [ ] 1.4 Kopie der aktuellen Units von `hba1` als `deploy/hba.service.2024` und `deploy/sensor.service` ins Repo legen und verifizieren, dass sie dem Stand auf `hba1` entsprechen
+- [x] 1.3 `deploy/README.md` mit Installation, Rückfall, Journal-Abfrage, Hinweis auf doppelten Start und der Beschreibung von `sensor.service` schreiben und verifizieren, dass die Befehle zum Ist-Zustand auf `hba1` passen
+- [x] 1.4 Kopie der aktuellen Units von `hba1` als `deploy/hba.service.2024` und `deploy/sensor.service` ins Repo legen und verifizieren, dass sie dem Stand auf `hba1` entsprechen
 
 ## 2. Programm anschließen
 
