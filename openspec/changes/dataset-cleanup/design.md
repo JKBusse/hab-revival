@@ -81,3 +81,8 @@ Rollback: Originaldatensatz bleibt als unveränderte Kopie liegen. `medium6` ble
 
 - Einstellungen aus `medium6/args.yaml` (Epochen, Batch, Augmentierung): erst nach dem Lesen auf `hba1` bekannt.
 - Wie viele Epochen und wie lange ein Lauf auf der P106-100 dauert, ist erst nach der Probeepoche abschätzbar.
+
+## Messwerte `hba1` (2026-11-08)
+
+- 30 min Inferenz mit `medium6` bei 65 W: 22.333 Frames, Median 0,078 s, kein Xid. Das Limit ist kein harter Deckel: 60 von 537 Messpunkten lagen darüber (Spitze 88 W), Temperatur höchstens 50 °C.
+- Probeepoche (`medium6/best.pt` als Start, 3.274 Trainingsbilder, `imgsz=640`, `workers=2`): **Batch 16 bricht mit CUDA-Speichermangel ab** (6 GB), **Batch 8 läuft**: 0,130 h (7,8 min) je Epoche inklusive Validierung, Spitze 85 W, höchstens 52 °C, 4,3 GB Speicher, kein Xid. Ein Training braucht daher Batch 8 (nicht `batch=-1` wie bei `medium6`) und `workers` höchstens 2 (4 Kerne, 3,8 GB RAM).
