@@ -472,3 +472,7 @@ Jede Änderung am Trainingsset `train` mit Datei, Aktion und Grund. Quelle: `too
 | 2026-11-08 | `train/*/1698365697379978.* -> train/*/OFF_1698365697379978.*` | umbenannt | Bildprüfung: geprüft, kein Fahrzeug zu sehen: bewusstes Negativ |
 | 2026-11-08 | `train/*/16983656991789165.* -> train/*/OFF_16983656991789165.*` | umbenannt | Bildprüfung: geprüft, kein Fahrzeug zu sehen: bewusstes Negativ |
 | 2026-11-08 | `train/*/16983656996792977.* -> train/*/OFF_16983656996792977.*` | umbenannt | Bildprüfung: geprüft, kein Fahrzeug zu sehen: bewusstes Negativ |
+
+## Gegenprüfung der Bildprüfung (2026-11-08)
+
+Stichprobe: 20 zufällig gezogene geprüfte Bilder (Zufallssaat 20261108; 19 Negative, 1 mit Rahmen). Gegenprüfung durch Jan: **0 von 20 falsch** (Fehlerquote 0 
