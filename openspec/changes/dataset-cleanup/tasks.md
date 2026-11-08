@@ -26,12 +26,14 @@
 - [x] 4.2 30 Minuten echte Inferenz mit `medium6` bei 65 W laufen lassen und verifizieren, dass im Kernel-Log kein Xid-Fehler steht und Leistung, Temperatur und Takt aufgezeichnet sind
 - [x] 4.3 Eine Probeepoche trainieren und verifizieren, dass der Lauf ohne GPU-Abriss endet und die Dauer pro Epoche notiert ist
 
-## 5. Training und Abnahme
+## Zurückgestellt (Entscheidung Jan, 2026-11-08)
 
-- [ ] 5.1 Einstellungen aus `medium6/args.yaml` lesen, Abweichungen begründen und verifizieren, dass das Protokoll sie nennt
-- [ ] 5.2 Training detached mit `save_period=1` starten und verifizieren, dass nach der ersten Epoche ein Checkpoint existiert und `resume` im Probelauf funktioniert
-- [ ] 5.3 Neues Modell und `medium6` auf demselben `valid`- und `test`-Satz auswerten und verifizieren, dass Recall gesamt, Recall `front`, mAP50 und Frame-Zeit (Median, `hba1`) in einer Tabelle stehen
-- [ ] 5.4 Abnahme nach der Spec entscheiden, Befund dokumentieren und bei Erfolg den Modellpfad in der Konfiguration umstellen, andernfalls `medium6` belassen
+Das Training wurde bewusst **nicht ausgeführt**. Die Bildprüfung ergab, dass nur 7 von 456 Bildern ein Fahrzeug zeigten (414 Negative, 35 verworfen). Der erwartete Gewinn für den Recall ist damit klein, das Training kostet 4 bis 8 Stunden GPU-Last. `medium6` bleibt Standardmodell. Die Abnahmeregeln in der Spec bleiben für ein späteres neues Modell gültig. Der Datensatz und die Messwerte (Batch 8, 7,8 min je Epoche, siehe `design.md`) sind dafür vorbereitet. Die ursprünglichen Aufgaben:
+
+- (offen) 5.1 Einstellungen aus `medium6/args.yaml` lesen, Abweichungen begründen und verifizieren, dass das Protokoll sie nennt
+- (offen) 5.2 Training detached mit `save_period=1` starten und verifizieren, dass nach der ersten Epoche ein Checkpoint existiert und `resume` im Probelauf funktioniert
+- (offen) 5.3 Neues Modell und `medium6` auf demselben `valid`- und `test`-Satz auswerten und verifizieren, dass Recall gesamt, Recall `front`, mAP50 und Frame-Zeit (Median, `hba1`) in einer Tabelle stehen
+- (offen) 5.4 Abnahme nach der Spec entscheiden, Befund dokumentieren und bei Erfolg den Modellpfad in der Konfiguration umstellen, andernfalls `medium6` belassen
 
 ## Workflow follow-up
 
