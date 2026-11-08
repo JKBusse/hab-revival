@@ -13,11 +13,15 @@ Das System SHALL die Flags `-v`/`--video` (Live-Fenster), `-S`/`--stream` (Bild-
 - **THEN** gibt es kein Fenster, keinen Stream und keine gespeicherten Ausschnitte
 
 ### Requirement: Flags für die Erkennung
-Das System SHALL die Flags `-c`/`--conf` (Konfidenzschwelle, Standard 0.4), `-d`/`--device` (Standard `cpu`) und `-m`/`--model` (Standard `/home/jkb/HBA4v2Dataset/HBAv5/medium6/weights/best.pt`) unterstützen.
+Das System SHALL die Flags `-c`/`--conf` (Konfidenzschwelle, Standard 0.4), `-d`/`--device` (Standard `0`, erste GPU) und `-m`/`--model` (Standard `/home/jkb/HBA4v2Dataset/HBAv5/medium6/weights/best.pt`) unterstützen.
 
 #### Scenario: GPU wählen
 - **WHEN** `-d 0` übergeben wird
 - **THEN** läuft die Inferenz auf der ersten GPU
+
+#### Scenario: CPU wählen
+- **WHEN** `-d cpu` übergeben wird
+- **THEN** läuft die Inferenz auf der CPU
 
 ### Requirement: Flags für die Kamera
 Das System SHALL die Flags `-e`/`--exposure` (1 manuell, 3 automatisch, Standard 1), `-t`/`--time` (Belichtungszeit 0–5000, Standard 700) und `-b`/`--brightness` (−180 bis 180, Standard nicht gesetzt) unterstützen.
@@ -54,3 +58,15 @@ Das System SHALL im Repo keine Service-Definition, keinen Autostart und keine Ko
 #### Scenario: Neustart des Rechners
 - **WHEN** `hba1` neu startet
 - **THEN** startet das Fernlicht-Programm nicht nachweislich von selbst
+
+### Requirement: Exit-Codes
+Das System SHALL mit festen Exit-Codes enden: 0 gewollter Stopp, 1 Laufzeitfehler (auch CUDA-Fehler), 2 ungültige Konfiguration, 3 keine nutzbare GPU beim Start, 4 Watchdog (hängende Hauptschleife). Jeder Code ungleich 0 SHALL im Log mit seinem Grund stehen.
+
+#### Scenario: Keine GPU
+- **WHEN** das Programm wegen fehlender GPU endet
+- **THEN** ist der Exit-Code 3
+- **AND** das Log nennt den Grund
+
+#### Scenario: Gewollter Stopp
+- **WHEN** das Programm per SIGTERM endet
+- **THEN** ist der Exit-Code 0

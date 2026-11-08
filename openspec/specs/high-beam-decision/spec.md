@@ -50,10 +50,29 @@ Das System SHALL den Zeitpunkt der letzten Detektion höchstens einmal pro ganze
 - **THEN** wird der Zeitpunkt etwa einmal pro Sekunde aktualisiert
 - **AND** der Status bleibt 0
 
-### Requirement: Bewertungsgrundlage ist die erste Box (Legacy-Eigenheit)
-Das System SHALL für die Entscheidung Breite und obere Kante der **ersten** gemeldeten Box heranziehen und die Konfidenz der **zuletzt** durchlaufenen Box prüfen. Weitere relevante Boxen im selben Frame beeinflussen das Ergebnis nicht. Dieses Verhalten ist ein bekannter Mangel und wird in einem Change korrigiert.
+### Requirement: Alle Boxen werden bewertet
+Das System SHALL für die Entscheidung jede Box eines Frames einzeln auf Relevanz prüfen (Breite, obere Kante, Konfidenz). Der Zeitpunkt der letzten Detektion wird aktualisiert, sobald mindestens eine Box relevant ist, unabhängig von ihrer Position in der Boxliste.
 
 #### Scenario: Zweites Fahrzeug relevant, erstes nicht
 - **WHEN** ein Frame zwei Boxen enthält und nur die zweite die Aktive Fläche erfüllt
+- **THEN** wird der Zeitpunkt der letzten Detektion aktualisiert
+- **AND** der Status ist im selben Frame 0
+
+#### Scenario: Erstes Fahrzeug relevant, zweites nicht
+- **WHEN** ein Frame zwei Boxen enthält und nur die erste die Aktive Fläche erfüllt
+- **THEN** wird der Zeitpunkt der letzten Detektion aktualisiert
+
+#### Scenario: Keine Box relevant
+- **WHEN** ein Frame Boxen enthält, aber keine die Aktive Fläche erfüllt
 - **THEN** wird der Zeitpunkt der letzten Detektion nicht aktualisiert
-- **AND** das Fernlicht kann trotz sichtbarem Gegenverkehr freigegeben werden
+
+### Requirement: Nie weniger Abblenden als vorher
+Das System SHALL für jede Frame-Folge in jedem Frame einen Status liefern, der nicht größer ist als der Status der bisherigen Logik (nur erste Box) für dieselbe Folge.
+
+#### Scenario: Wiedergabe echter Fahrt-Logs
+- **WHEN** die aufgezeichneten Frames der echten Fahrt-Logs mit der neuen Logik wiedergegeben werden
+- **THEN** ist der Status in keinem Frame 1, wo die bisherige Logik 0 lieferte
+
+#### Scenario: Zufällige Frame-Folgen
+- **WHEN** beliebige Folgen von Frames mit beliebigen Boxen und Zeitpunkten mit beiden Logiken ausgewertet werden
+- **THEN** ist der Status der neuen Logik nie größer als der der bisherigen
