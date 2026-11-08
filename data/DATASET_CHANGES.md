@@ -475,8 +475,4 @@ Jede Änderung am Trainingsset `train` mit Datei, Aktion und Grund. Quelle: `too
 
 ## Gegenprüfung der Bildprüfung (2026-11-08)
 
-Stichprobe: 20 zufällig gezogene geprüfte Bilder (Zufallssaat 20261108; 19 Negative, 1 mit Rahmen). Gegenprüfung durch Jan: **0 von 20 falsch** (Fehlerquote 0 
-
-## Gegenprüfung der Bildprüfung (2026-11-08)
-
 Stichprobe: 20 zufällig gezogene geprüfte Bilder (Zufallssaat 20261108; 19 Negative, 1 mit Rahmen). Gegenprüfung durch Jan: **0 von 20 falsch** (Fehlerquote 0 %). Bei 20 Bildern lässt sich ein Fehleranteil von bis zu rund 14 % (95-%-Grenze) nicht ausschließen, er ist aber unwahrscheinlich hoch.
